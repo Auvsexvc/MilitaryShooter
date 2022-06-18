@@ -42,6 +42,7 @@ namespace MilitaryShooter
             {
                 Position = (Position.X, Position.Y + Speed);
             }
+            TriggerMove?.Invoke(this);
         }
 
     }

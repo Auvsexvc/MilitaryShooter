@@ -128,21 +128,21 @@ namespace MilitaryShooter
 
         private void MoveCharacter(Character character)
         {
-            if (gameEngine.Player.MoveLeft && Canvas.GetLeft(playerRect) > playerRect.Width)
+            if (character.MoveLeft && Canvas.GetLeft(playerRect) > playerRect.Width)
             {
-                Canvas.SetLeft(playerRect, Canvas.GetLeft(playerRect) - gameEngine.Player.Speed);
+                Canvas.SetLeft(playerRect, Canvas.GetLeft(playerRect) - character.Speed);
             }
-            if (gameEngine.Player.MoveRight && Canvas.GetLeft(playerRect) + playerRect.Width < GameCanvas.Width - (playerRect.Width / 2))
+            if (character.MoveRight && Canvas.GetLeft(playerRect) + playerRect.Width < GameCanvas.Width - (playerRect.Width / 2))
             {
-                Canvas.SetLeft(playerRect, Canvas.GetLeft(playerRect) + gameEngine.Player.Speed);
+                Canvas.SetLeft(playerRect, Canvas.GetLeft(playerRect) + character.Speed);
             }
-            if (gameEngine.Player.MoveUp && Canvas.GetTop(playerRect) > playerRect.Height)
+            if (character.MoveUp && Canvas.GetTop(playerRect) > playerRect.Height)
             {
-                Canvas.SetTop(playerRect, Canvas.GetTop(playerRect) - (gameEngine.Player.Speed));
+                Canvas.SetTop(playerRect, Canvas.GetTop(playerRect) - (character.Speed));
             }
-            if (gameEngine.Player.MoveDown && Canvas.GetTop(playerRect) + playerRect.Height < GameCanvas.Height - (playerRect.Height / 2))
+            if (character.MoveDown && Canvas.GetTop(playerRect) + playerRect.Height < GameCanvas.Height - (playerRect.Height / 2))
             {
-                Canvas.SetTop(playerRect, Canvas.GetTop(playerRect) + (gameEngine.Player.Speed));
+                Canvas.SetTop(playerRect, Canvas.GetTop(playerRect) + (character.Speed));
             }
 
         }
