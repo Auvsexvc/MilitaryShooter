@@ -16,48 +16,49 @@ namespace MilitaryShooter
     public partial class MainWindow : Window
     {
         private readonly DispatcherTimer timer = new();
-        private readonly GameEngine gameEngine = new();
-        private Rectangle playerRect = new();
+        private readonly GameEngine gameEngine;
 
         public MainWindow()
         {
             InitializeComponent();
+            gameEngine = new(GameCanvas.Width, GameCanvas.Height);
             SetUpGame();
-            SetPlayer();
             InitializeGameTimer();
             gameEngine.TriggerSpawnBulletModel += SpawnBullet;
+            gameEngine.TriggerSpawnModel += SpawnModel;
+            gameEngine.TriggerRemoveModel += RemoveModel;
         }
 
         private void SetUpGame()
         {
             GameCanvas.Focus();
-            GameEngine.ResX = GameCanvas.Width;
-            GameEngine.ResY = GameCanvas.Height;
+            SpawnModel(gameEngine.Player);
         }
 
-        private void SetPlayer()
+        private void SpawnModel(GameObject gameObject)
         {
-            playerRect = new()
+            Rectangle playerRect = new()
             {
-                Name = "playerRect",
-                Uid = gameEngine.Player.Guid.ToString(),
-                Height = gameEngine.Player.Height,
-                Width = gameEngine.Player.Width,
+                Name = gameObject.Name,
+                Tag = "Character",
+                Uid = gameObject.Guid.ToString(),
+                Height = gameObject.Height,
+                Width = gameObject.Width,
                 Fill = new ImageBrush() { ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/soldier.png")) },
                 Stroke = new SolidColorBrush(Colors.White),
                 RenderTransformOrigin = new Point(0.5, 0.5)
             };
             GameCanvas.Children.Add(playerRect);
-            Canvas.SetLeft(playerRect, gameEngine.Player.Position.X);
-            Canvas.SetTop(playerRect, gameEngine.Player.Position.Y);
+            Canvas.SetLeft(playerRect, gameObject.CenterPosition.X);
+            Canvas.SetTop(playerRect, gameObject.CenterPosition.Y);
         }
 
         private void GameLoop(object? sender, EventArgs e)
         {
-            MoveCharacter(gameEngine.Player);
+            DrawCharacters();
 
             DrawLineOfFire();
-            MoveBullets();
+            DrawBullets();
         }
 
         private void DrawLineOfFire()
@@ -65,8 +66,8 @@ namespace MilitaryShooter
             Line lineOfFire = new()
             {
                 Tag = "Aim",
-                X1 = gameEngine.Player.Position.X,
-                Y1 = gameEngine.Player.Position.Y,
+                X1 = gameEngine.Player.CenterPosition.X,
+                Y1 = gameEngine.Player.CenterPosition.Y,
                 X2 = gameEngine.Player.Aim.X,
                 Y2 = gameEngine.Player.Aim.Y,
                 StrokeThickness = 2,
@@ -82,7 +83,7 @@ namespace MilitaryShooter
 
         private void InitializeGameTimer()
         {
-            timer.Interval = TimeSpan.FromMilliseconds(20);
+            timer.Interval = TimeSpan.FromMilliseconds(10);
             timer.Tick += GameLoop;
             timer.Start();
         }
@@ -98,61 +99,50 @@ namespace MilitaryShooter
                 Fill = Brushes.Red,
                 Stroke = Brushes.Yellow,
                 Uid = bulletObj.Guid.ToString(),
-                RenderTransform = (RotateTransform)(new(gameEngine.Player.Direction - 0/*, (playerRect.ActualWidth / 2), playerRect.ActualHeight / 2*/))
+                RenderTransform = (RotateTransform)(new(gameEngine.Player.Direction))
             };
-            Canvas.SetLeft(newBullet, gameEngine.Player.Position.X);
-            Canvas.SetTop(newBullet, gameEngine.Player.Position.Y);
+            Canvas.SetLeft(newBullet, gameEngine.Player.CenterPosition.X);
+            Canvas.SetTop(newBullet, gameEngine.Player.CenterPosition.Y);
 
             GameCanvas.Children.Add(newBullet);
         }
 
-        private void MoveBullets()
+        private void DrawBullets()
         {
-            foreach (Rectangle bullet in GameCanvas.Children.OfType<Rectangle>().Where(rect => (string)rect.Tag == "Bullet").ToList())
+            foreach (Rectangle bulletRect in GameCanvas.Children.OfType<Rectangle>().Where(rect => (string)rect.Tag == "Bullet").ToList())
             {
-                var bulletObj = (Bullet?)gameEngine.GameObjects.Find(b => b.Guid.ToString() == bullet.Uid && b.GetType() == typeof(Bullet));
+                var bulletObj = (Bullet)gameEngine.GameObjects.Find(b => b.Guid.ToString() == bulletRect.Uid && b.GetType() == typeof(Bullet))!;
 
-                (double X, double Y) = bulletObj!.Travel((Canvas.GetLeft(bullet), Canvas.GetTop(bullet)));
-                Canvas.SetLeft(bullet, X);
-                Canvas.SetTop(bullet, Y);
+                gameEngine.UpdateBulletPos(bulletObj);
 
-                if (Canvas.GetLeft(bullet) < 0 || Canvas.GetLeft(bullet) > GameCanvas.ActualWidth || Canvas.GetTop(bullet) < 0 || Canvas.GetTop(bullet) > GameCanvas.ActualHeight)
-                {
-                    ItemRemover(bullet);
-                }
+                Canvas.SetLeft(bulletRect, bulletObj.PositionLT.X);
+                Canvas.SetTop(bulletRect, bulletObj.PositionLT.Y);
+
+                
             }
         }
 
-        private void MoveCharacter(Character character)
+        private void DrawCharacters()
         {
-            Canvas.SetLeft(playerRect, character.Move().X - (playerRect.Width / 2));
-            Canvas.SetTop(playerRect, character.Move().Y - (playerRect.Height / 2));
+            foreach (var characterRect in GameCanvas.Children.OfType<Rectangle>().Where(rect => (string)rect.Tag == "Character").ToList())
+            {
+                var character = (Character?)gameEngine.GameObjects.Find(b => b.Guid.ToString() == characterRect.Uid)!;
+                (double X, double Y) = character.Move();
+
+                Canvas.SetLeft(characterRect, X);
+                Canvas.SetTop(characterRect, Y);
+                RotateTransform rotateTransform = new()
+                {
+                    Angle = gameEngine.Player.Direction
+                };
+                characterRect.RenderTransform = rotateTransform;
+            }
         }
 
         private void MouseMoveHandler(object sender, MouseEventArgs e)
         {
             Point position = e.GetPosition((IInputElement)sender);
-            
-            double pX = position.X;
-            if(position.X > GameEngine.ResX) pX = GameEngine.ResX;
-            double pY = position.Y;
-            if(position.Y > GameEngine.ResY) pY = GameEngine.ResY;
-
-            Point playerCenter = new(Canvas.GetLeft(playerRect) + (playerRect.ActualWidth / 2), Canvas.GetTop(playerRect) + (playerRect.ActualHeight / 2));
-
-            double radians = Math.Atan((pY - playerCenter.Y) /
-                                       (pX - playerCenter.X));
-            RotateTransform playerRotation = new();
-            playerRect.RenderTransform = playerRotation;
-            playerRotation.Angle = radians * 180 / Math.PI;
-
-            if (position.X - playerCenter.X < 0)
-            {
-                playerRotation.Angle += 180;
-            }
-            gameEngine.Player.Direction = playerRotation.Angle;
-            gameEngine.Player.Position = (playerCenter.X, playerCenter.Y);
-            gameEngine.Player.Aim = (pX, pY);
+            gameEngine.Player.SetAim((position.X, position.Y));
         }
 
         private void GameCanvas_KeyDown(object sender, KeyEventArgs e)
@@ -199,11 +189,11 @@ namespace MilitaryShooter
             }
         }
 
-        private void ItemRemover(UIElement element)
+        private void RemoveModel(GameObject gameObject)
         {
-            GameCanvas.Children.Remove(element);
-            gameEngine.RemoveGameObject(gameEngine.GameObjects.First(o => o.Guid.ToString().Equals(element.Uid)));
+            GameCanvas.Children.Remove(GameCanvas.Children.OfType<Rectangle>().FirstOrDefault(rect => (string)rect.Uid == gameObject.Guid.ToString()));
         }
+
 
         private void Quit_Click(object sender, RoutedEventArgs e)
         {
@@ -215,7 +205,7 @@ namespace MilitaryShooter
 
         private void GameCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            gameEngine.Player.Fire();
+            gameEngine.Player.Shoot();
         }
 
         private void GameCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)

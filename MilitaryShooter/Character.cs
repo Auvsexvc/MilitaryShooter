@@ -4,45 +4,64 @@ namespace MilitaryShooter
 {
     internal abstract class Character : GameObject
     {
-        public string Name { get; set; }
-        public double Speed { get; set; } = 3;
-        public (double X, double Y) Position { get; set; }
+        public new double Speed { get; set; } = 3;
+
         public (double X, double Y) Aim { get; set; }
-        public double Direction { get; set; }
+
+        public double Direction
+        {
+            get
+            {
+                double angle = Math.Atan((Aim.Y - CenterPosition.Y) / (Aim.X - CenterPosition.X)) * 180 / Math.PI;
+                if (Aim.X - CenterPosition.X < 0)
+                {
+                    angle += 180;
+                }
+                return angle;
+            }
+        }
+
         public bool MoveLeft { get; set; }
         public bool MoveRight { get; set; }
         public bool MoveUp { get; set; }
         public bool MoveDown { get; set; }
-        public double Width { get; set; }
-        public double Height { get; set; }
 
         public event Action<Character>? TriggerSpawnBullet;
 
+        public void SetAim((double X, double Y) aim)
+        {
+            Aim = (aim.X > GameEngine.ResX ? GameEngine.ResX : aim.X, aim.Y > GameEngine.ResY ? GameEngine.ResY : aim.Y);
+        }
 
-        public void Fire()
+        public (double X, double Y) SetCenterPosition()
+        {
+            return (PositionLT.X + (Width / 2), PositionLT.Y + (Height / 2));
+        }
+
+        public void Shoot()
         {
             TriggerSpawnBullet?.Invoke(this);
         }
 
         public (double X, double Y) Move()
         {
-            if (MoveLeft && Position.X - Width > 0 )
+            if (MoveLeft && PositionLT.X > 0)
             {
-                Position = (Position.X - Speed, Position.Y);
+                PositionLT = (PositionLT.X - Speed, PositionLT.Y);
             }
-            if (MoveRight && Position.X < GameEngine.ResX -  Width)
+            if (MoveRight && PositionLT.X < GameEngine.ResX - Width)
             {
-                Position = (Position.X + Speed, Position.Y);
+                PositionLT = (PositionLT.X + Speed, PositionLT.Y);
             }
-            if (MoveUp && Position.Y - Height > 0)
+            if (MoveUp && PositionLT.Y > 0)
             {
-                Position = (Position.X, Position.Y - Speed * (GameEngine.ResY / GameEngine.ResX));
+                PositionLT = (PositionLT.X, PositionLT.Y - (Speed));
             }
-            if (MoveDown && Position.Y < GameEngine.ResY - Height)
+            if (MoveDown && PositionLT.Y < GameEngine.ResY - Height)
             {
-                Position = (Position.X, Position.Y + Speed * (GameEngine.ResY / GameEngine.ResX));
+                PositionLT = (PositionLT.X, PositionLT.Y + (Speed));
             }
-            return Position;
+            return PositionLT;
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Controls;
 
 namespace MilitaryShooter
 {
@@ -7,33 +9,63 @@ namespace MilitaryShooter
     {
         public static double ResX { get; set; }
         public static double ResY { get; set; }
-        public Player Player { get; }
+        public Player Player { get; private set; }
         public List<GameObject> GameObjects { get; } = new List<GameObject>();
 
         public event Action<Bullet>? TriggerSpawnBulletModel;
 
+        public event Action<GameObject>? TriggerSpawnModel;
+        public event Action<GameObject>? TriggerRemoveModel;
 
-        public GameEngine()
+        public GameEngine(double resX, double resY)
         {
-            Player = new Player();
-            Player.TriggerSpawnBullet += SpawnBullet;
+            ResX = resX;
+            ResY = resY;
+            CreatePlayer();
+            GameObject.OnCreate += Spawn;
+            Player!.TriggerSpawnBullet += SpawnBulletFiredBy;
         }
 
-        public void SpawnBullet(Character character)
+        private void CreatePlayer()
+        {
+            Player = new Player();
+            GameObjects.Add(Player);
+        }
+
+        public void SpawnBulletFiredBy(Character character)
         {
             Bullet newBullet = new()
             {
                 Target = character.Aim,
-                Source = character.Position
+                Source = character.CenterPosition,
+                PositionLT = character.CenterPosition
             };
-            GameObjects.Add(newBullet);
+            //GameObjects.Add(newBullet);
             TriggerSpawnBulletModel?.Invoke(newBullet);
         }
 
-        public void RemoveGameObject(GameObject obj)
+        public void UpdateBulletPos(Bullet bullet)
         {
-            GameObjects.Remove(obj);
+            bullet.Travel();
+            if (bullet.IsOutOfBounds())
+            {
+                RemoveGameObject(bullet);
+            }
         }
 
+        public void Spawn(GameObject gameObject)
+        {
+            GameObjects.Add(gameObject);
+            if (gameObject.GetType() != typeof(Bullet))
+            {
+                TriggerSpawnModel?.Invoke(gameObject);
+            }
+        }
+
+        public void RemoveGameObject(GameObject gameObject)
+        {
+            GameObjects.Remove(gameObject);
+            TriggerRemoveModel?.Invoke(gameObject);
+        }
     }
 }
