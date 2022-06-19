@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,21 +17,39 @@ namespace MilitaryShooter
     {
         private readonly DispatcherTimer timer = new();
         private readonly GameEngine gameEngine = new();
+        private Rectangle playerRect = new();
 
         public MainWindow()
         {
             InitializeComponent();
-            InitializeGameTimer();
             SetUpGame();
+            SetPlayer();
+            InitializeGameTimer();
             gameEngine.TriggerSpawnBulletModel += SpawnBullet;
-            gameEngine.TriggerMoveCharacterModel += MoveCharacter;
         }
 
         private void SetUpGame()
         {
             GameCanvas.Focus();
-            playerRect.Fill = new ImageBrush() { ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/soldier.png")) };
-            playerRect.Stroke = new SolidColorBrush(Colors.White);
+            GameEngine.ResX = GameCanvas.Width;
+            GameEngine.ResY = GameCanvas.Height;
+        }
+
+        private void SetPlayer()
+        {
+            playerRect = new()
+            {
+                Name = "playerRect",
+                Uid = gameEngine.Player.Guid.ToString(),
+                Height = gameEngine.Player.Height,
+                Width = gameEngine.Player.Width,
+                Fill = new ImageBrush() { ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/soldier.png")) },
+                Stroke = new SolidColorBrush(Colors.White),
+                RenderTransformOrigin = new Point(0.5, 0.5)
+            };
+            GameCanvas.Children.Add(playerRect);
+            Canvas.SetLeft(playerRect, gameEngine.Player.Position.X);
+            Canvas.SetTop(playerRect, gameEngine.Player.Position.Y);
         }
 
         private void GameLoop(object? sender, EventArgs e)
@@ -62,26 +79,6 @@ namespace MilitaryShooter
             }
             GameCanvas.Children.Add(lineOfFire);
         }
-
-        //private async Task OpenFire()
-        //{
-        //    Line lineOfFire = new()
-        //    {
-        //        Tag = "Fire",
-        //        X1 = gameEngine.Player.X,
-        //        X2 = gameEngine.Player.AimX,
-        //        Y1 = gameEngine.Player.Y,
-        //        Y2 = gameEngine.Player.AimY,
-        //        StrokeThickness = 2,
-        //        Opacity = 1,
-        //        Stroke = Brushes.White,
-        //        StrokeDashOffset = 3,
-        //    };
-
-        //    GameCanvas.Children.Add(lineOfFire);
-        //    await Task.Delay(50);
-        //    GameCanvas.Children.Remove(lineOfFire);
-        //}
 
         private void InitializeGameTimer()
         {
@@ -128,38 +125,25 @@ namespace MilitaryShooter
 
         private void MoveCharacter(Character character)
         {
-            if (character.MoveLeft && Canvas.GetLeft(playerRect) > playerRect.Width)
-            {
-                Canvas.SetLeft(playerRect, Canvas.GetLeft(playerRect) - character.Speed);
-            }
-            if (character.MoveRight && Canvas.GetLeft(playerRect) + playerRect.Width < GameCanvas.Width - (playerRect.Width / 2))
-            {
-                Canvas.SetLeft(playerRect, Canvas.GetLeft(playerRect) + character.Speed);
-            }
-            if (character.MoveUp && Canvas.GetTop(playerRect) > playerRect.Height)
-            {
-                Canvas.SetTop(playerRect, Canvas.GetTop(playerRect) - (character.Speed));
-            }
-            if (character.MoveDown && Canvas.GetTop(playerRect) + playerRect.Height < GameCanvas.Height - (playerRect.Height / 2))
-            {
-                Canvas.SetTop(playerRect, Canvas.GetTop(playerRect) + (character.Speed));
-            }
-
+            Canvas.SetLeft(playerRect, character.Move().X - (playerRect.Width / 2));
+            Canvas.SetTop(playerRect, character.Move().Y - (playerRect.Height / 2));
         }
 
         private void MouseMoveHandler(object sender, MouseEventArgs e)
         {
             Point position = e.GetPosition((IInputElement)sender);
+            
             double pX = position.X;
+            if(position.X > GameEngine.ResX) pX = GameEngine.ResX;
             double pY = position.Y;
-
-            //Canvas.SetLeft(Player, pX - (Player.Width / 2));
-            //Canvas.SetTop(Player, pY - (Player.Height / 2));
+            if(position.Y > GameEngine.ResY) pY = GameEngine.ResY;
 
             Point playerCenter = new(Canvas.GetLeft(playerRect) + (playerRect.ActualWidth / 2), Canvas.GetTop(playerRect) + (playerRect.ActualHeight / 2));
 
             double radians = Math.Atan((pY - playerCenter.Y) /
                                        (pX - playerCenter.X));
+            RotateTransform playerRotation = new();
+            playerRect.RenderTransform = playerRotation;
             playerRotation.Angle = radians * 180 / Math.PI;
 
             if (position.X - playerCenter.X < 0)
@@ -168,7 +152,7 @@ namespace MilitaryShooter
             }
             gameEngine.Player.Direction = playerRotation.Angle;
             gameEngine.Player.Position = (playerCenter.X, playerCenter.Y);
-            gameEngine.Player.Aim = (position.X, position.Y);
+            gameEngine.Player.Aim = (pX, pY);
         }
 
         private void GameCanvas_KeyDown(object sender, KeyEventArgs e)
@@ -231,9 +215,7 @@ namespace MilitaryShooter
 
         private void GameCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            //gameEngine.SpawnBullet(gameEngine.Player);
             gameEngine.Player.Fire();
-            //_ = OpenFire();
         }
 
         private void GameCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)

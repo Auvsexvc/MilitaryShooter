@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Windows.Controls;
 
 namespace MilitaryShooter
 {
     internal abstract class Character : GameObject
     {
-        public int Speed { get; set; } = 3;
+        public string Name { get; set; }
+        public double Speed { get; set; } = 3;
         public (double X, double Y) Position { get; set; }
         public (double X, double Y) Aim { get; set; }
         public double Direction { get; set; }
@@ -17,33 +17,32 @@ namespace MilitaryShooter
         public double Height { get; set; }
 
         public event Action<Character>? TriggerSpawnBullet;
-        public event Action<Character>? TriggerMove;
+
 
         public void Fire()
         {
             TriggerSpawnBullet?.Invoke(this);
         }
 
-        public void Move()
+        public (double X, double Y) Move()
         {
-            if (MoveLeft)
+            if (MoveLeft && Position.X - Width > 0 )
             {
                 Position = (Position.X - Speed, Position.Y);
             }
-            if (MoveRight)
+            if (MoveRight && Position.X < GameEngine.ResX -  Width)
             {
-                Position = (Position.X + Speed, Position.Y); ;
+                Position = (Position.X + Speed, Position.Y);
             }
-            if (MoveUp)
+            if (MoveUp && Position.Y - Height > 0)
             {
-                Position = (Position.X, Position.Y - Speed);
+                Position = (Position.X, Position.Y - Speed * (GameEngine.ResY / GameEngine.ResX));
             }
-            if (MoveDown)
+            if (MoveDown && Position.Y < GameEngine.ResY - Height)
             {
-                Position = (Position.X, Position.Y + Speed);
+                Position = (Position.X, Position.Y + Speed * (GameEngine.ResY / GameEngine.ResX));
             }
-            TriggerMove?.Invoke(this);
+            return Position;
         }
-
     }
 }
