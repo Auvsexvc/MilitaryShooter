@@ -51,7 +51,28 @@ namespace MilitaryShooter
             TriggerSpawnBullet?.Invoke(this);
         }
 
-        public (double X, double Y) Move()
+        //public (double X, double Y) Move()
+        //{
+        //    if (MoveLeft && PositionLT.X > 0)
+        //    {
+        //        PositionLT = (PositionLT.X - Speed, PositionLT.Y);
+        //    }
+        //    if (MoveRight && PositionLT.X < GameEngine.ResX - Width)
+        //    {
+        //        PositionLT = (PositionLT.X + Speed, PositionLT.Y);
+        //    }
+        //    if (MoveUp && PositionLT.Y > 0)
+        //    {
+        //        PositionLT = (PositionLT.X, PositionLT.Y - Speed);
+        //    }
+        //    if (MoveDown && PositionLT.Y < GameEngine.ResY - Height)
+        //    {
+        //        PositionLT = (PositionLT.X, PositionLT.Y + Speed);
+        //    }
+        //    return PositionLT;
+        //}
+
+        public void Move()
         {
             if (MoveLeft && PositionLT.X > 0)
             {
@@ -69,7 +90,6 @@ namespace MilitaryShooter
             {
                 PositionLT = (PositionLT.X, PositionLT.Y + Speed);
             }
-            return PositionLT;
         }
     }
 }

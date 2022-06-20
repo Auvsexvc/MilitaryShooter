@@ -6,7 +6,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using System.Windows.Threading;
 
 namespace MilitaryShooter
 {
@@ -15,7 +14,6 @@ namespace MilitaryShooter
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly DispatcherTimer timer = new();
         private readonly GameEngine gameEngine;
 
         public MainWindow()
@@ -25,15 +23,25 @@ namespace MilitaryShooter
             gameEngine.TriggerSpawnBulletModel += SpawnBullet;
             gameEngine.TriggerSpawnModel += SpawnModel;
             gameEngine.TriggerRemoveModel += RemoveModel;
-
+            gameEngine.GameTimer.Tick += GameLoop;
             SetUpGame();
-            InitializeGameTimer();
         }
 
         private void SetUpGame()
         {
             GameCanvas.Focus();
             gameEngine.SpawnCharacters();
+        }
+
+        private void GameLoop(object? sender, EventArgs e)
+        {
+            gameEngine.UpdateCharacterPos();
+            DrawCharacters();
+
+            DrawLinesOfFire();
+
+            gameEngine.UpdateBulletPos();
+            DrawBullets();
         }
 
         private void SpawnModel(Character character)
@@ -53,13 +61,6 @@ namespace MilitaryShooter
             GameCanvas.Children.Add(characterRect);
             Canvas.SetLeft(characterRect, character.CenterPosition.X);
             Canvas.SetTop(characterRect, character.CenterPosition.Y);
-        }
-
-        private void GameLoop(object? sender, EventArgs e)
-        {
-            DrawCharacters();
-            DrawLinesOfFire();
-            DrawBullets();
         }
 
         private void DrawLinesOfFire()
@@ -87,13 +88,6 @@ namespace MilitaryShooter
             }
         }
 
-        private void InitializeGameTimer()
-        {
-            timer.Interval = TimeSpan.FromMilliseconds(10);
-            timer.Tick += GameLoop;
-            timer.Start();
-        }
-
         private void SpawnBullet(Bullet bulletObj, Character character)
         {
             Rectangle newBullet = new()
@@ -117,9 +111,7 @@ namespace MilitaryShooter
         {
             foreach (Rectangle bulletRect in GameCanvas.Children.OfType<Rectangle>().Where(rect => (string)rect.Tag == "Bullet").ToList())
             {
-                Bullet bulletObj = (Bullet)gameEngine.GameObjects.Find(b => b.Guid.ToString() == bulletRect.Uid && b.GetType() == typeof(Bullet))!;
-
-                gameEngine.UpdateBulletPos(bulletObj);
+                Bullet bulletObj = gameEngine.Bullets.Find(b => b.Guid.ToString() == bulletRect.Uid)!;
 
                 Canvas.SetLeft(bulletRect, bulletObj.PositionLT.X);
                 Canvas.SetTop(bulletRect, bulletObj.PositionLT.Y);
@@ -130,16 +122,14 @@ namespace MilitaryShooter
         {
             foreach (Rectangle characterRect in GameCanvas.Children.OfType<Rectangle>().Where(rect => (string)rect.Tag == "Character").ToList())
             {
-                Character character = (Character?)gameEngine.GameObjects.Find(b => b.Guid.ToString() == characterRect.Uid)!;
-                (double X, double Y) = character.Move();
+                Character character = gameEngine.Characters.Find(b => b.Guid.ToString() == characterRect.Uid)!;
 
-                Canvas.SetLeft(characterRect, X);
-                Canvas.SetTop(characterRect, Y);
-                RotateTransform rotateTransform = new()
+                Canvas.SetLeft(characterRect, character.PositionLT.X);
+                Canvas.SetTop(characterRect, character.PositionLT.Y);
+                characterRect.RenderTransform = (RotateTransform)(new()
                 {
                     Angle = character.Direction
-                };
-                characterRect.RenderTransform = rotateTransform;
+                });
             }
         }
 

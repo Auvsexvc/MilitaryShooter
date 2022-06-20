@@ -28,7 +28,7 @@
                 NextEnemy = new Enemy();
                 clones--;
             }
-            while (clones>0);
+            while (clones > 0);
 
             return NextEnemy;
         }

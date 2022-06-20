@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Threading;
 
 namespace MilitaryShooter
 {
     internal class GameEngine
     {
+        public DispatcherTimer GameTimer { get; } = new();
         public static double ResX { get; private set; }
         public static double ResY { get; private set; }
         public Player Player { get; }
@@ -13,12 +15,14 @@ namespace MilitaryShooter
         public Enemy CurrentEnemy { get; }
         public List<GameObject> GameObjects { get; } = new List<GameObject>();
         public List<Character> Characters => GameObjects.OfType<Character>().ToList();
+        public List<Bullet> Bullets => GameObjects.OfType<Bullet>().ToList();
 
         public event Action<Bullet, Character>? TriggerSpawnBulletModel;
 
         public event Action<Character>? TriggerSpawnModel;
 
         public event Action<GameObject>? TriggerRemoveModel;
+
         public event Action<GameObject>? TriggerSpawn;
 
         public GameEngine(double resX, double resY)
@@ -30,8 +34,15 @@ namespace MilitaryShooter
             Player = new Player();
             CurrentEnemy = EnemyQueue.Clones(10);
 
+            InitializeGameTimer();
             SpawnBullets();
             SpawnCharacters();
+        }
+
+        private void InitializeGameTimer()
+        {
+            GameTimer.Interval = TimeSpan.FromMilliseconds(10);
+            GameTimer.Start();
         }
 
         public void SpawnCharacters()
@@ -66,12 +77,23 @@ namespace MilitaryShooter
             TriggerSpawnBulletModel?.Invoke(newBullet, character);
         }
 
-        public void UpdateBulletPos(Bullet bullet)
+        public void UpdateBulletPos()
         {
-            bullet.Travel();
-            if (bullet.IsOutOfBounds())
+            foreach (Bullet bullet in Bullets)
             {
-                RemoveGameObject(bullet);
+                bullet.Travel();
+                if (bullet.IsOutOfBounds())
+                {
+                    RemoveGameObject(bullet);
+                }
+            }
+        }
+
+        public void UpdateCharacterPos()
+        {
+            foreach (Character character in Characters)
+            {
+                character.Move();
             }
         }
 
