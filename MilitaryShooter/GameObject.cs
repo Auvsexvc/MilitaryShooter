@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media.Media3D;
 
 namespace MilitaryShooter
 {
@@ -24,6 +19,7 @@ namespace MilitaryShooter
             Guid = Guid.NewGuid();
             OnCreate?.Invoke(this);
         }
+
         public bool IsOutOfBounds() => PositionLT.X < 0 || PositionLT.X > GameEngine.ResX || PositionLT.Y < 0 || PositionLT.Y > GameEngine.ResY;
     }
 }

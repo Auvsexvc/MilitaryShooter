@@ -1,38 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Controls;
 
 namespace MilitaryShooter
 {
     internal class GameEngine
     {
-        public static double ResX { get; set; }
-        public static double ResY { get; set; }
-        public Player Player { get; private set; }
+        public static double ResX { get; private set; }
+        public static double ResY { get; private set; }
+        public Player Player { get; }
+        public EnemyQueue EnemyQueue { get; }
+        public Enemy CurrentEnemy { get; }
         public List<GameObject> GameObjects { get; } = new List<GameObject>();
+        public List<Character> Characters => GameObjects.OfType<Character>().ToList();
 
-        public event Action<Bullet>? TriggerSpawnBulletModel;
+        public event Action<Bullet, Character>? TriggerSpawnBulletModel;
 
-        public event Action<GameObject>? TriggerSpawnModel;
+        public event Action<Character>? TriggerSpawnModel;
+
         public event Action<GameObject>? TriggerRemoveModel;
+        public event Action<GameObject>? TriggerSpawn;
 
         public GameEngine(double resX, double resY)
         {
+            GameObject.OnCreate += OnGameObjectCreate;
             ResX = resX;
             ResY = resY;
-            CreatePlayer();
-            GameObject.OnCreate += Spawn;
-            Player!.TriggerSpawnBullet += SpawnBulletFiredBy;
-        }
-
-        private void CreatePlayer()
-        {
+            EnemyQueue = new EnemyQueue();
             Player = new Player();
-            GameObjects.Add(Player);
+            CurrentEnemy = EnemyQueue.Clones(10);
+
+            SpawnBullets();
+            SpawnCharacters();
         }
 
-        public void SpawnBulletFiredBy(Character character)
+        public void SpawnCharacters()
+        {
+            foreach (var character in Characters)
+            {
+                Spawn(character);
+            }
+        }
+
+        private void Spawn(Character character)
+        {
+            TriggerSpawnModel?.Invoke(character);
+        }
+
+        private void SpawnBullets()
+        {
+            foreach (var item in Characters)
+            {
+                item.TriggerSpawnBullet += SpawnBulletFiredBy;
+            }
+        }
+
+        private void SpawnBulletFiredBy(Character character)
         {
             Bullet newBullet = new()
             {
@@ -40,8 +63,7 @@ namespace MilitaryShooter
                 Source = character.CenterPosition,
                 PositionLT = character.CenterPosition
             };
-            //GameObjects.Add(newBullet);
-            TriggerSpawnBulletModel?.Invoke(newBullet);
+            TriggerSpawnBulletModel?.Invoke(newBullet, character);
         }
 
         public void UpdateBulletPos(Bullet bullet)
@@ -53,19 +75,17 @@ namespace MilitaryShooter
             }
         }
 
-        public void Spawn(GameObject gameObject)
+        private void OnGameObjectCreate(GameObject gameObject)
         {
             GameObjects.Add(gameObject);
-            if (gameObject.GetType() != typeof(Bullet))
-            {
-                TriggerSpawnModel?.Invoke(gameObject);
-            }
+            TriggerSpawn?.Invoke(gameObject);
         }
 
-        public void RemoveGameObject(GameObject gameObject)
+        private void RemoveGameObject(GameObject gameObject)
         {
             GameObjects.Remove(gameObject);
             TriggerRemoveModel?.Invoke(gameObject);
+            GC.Collect();
         }
     }
 }

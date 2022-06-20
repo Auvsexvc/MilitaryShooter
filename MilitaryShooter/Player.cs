@@ -5,9 +5,7 @@
         public Player()
         {
             Name = "PlayerOne";
-            Speed = 2;
-            Width = 64;
-            Height = 64;
+            Speed = 4;
             PositionLT = (GameEngine.ResX / 2.0, GameEngine.ResY / 2.0);
         }
     }

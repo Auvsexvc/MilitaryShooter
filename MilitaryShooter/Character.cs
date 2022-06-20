@@ -4,7 +4,8 @@ namespace MilitaryShooter
 {
     internal abstract class Character : GameObject
     {
-        public new double Speed { get; set; } = 3;
+        private const double DefaultSpeed = 3.0;
+        private const double DefaultCharacterSide = 32;
 
         public (double X, double Y) Aim { get; set; }
 
@@ -27,6 +28,13 @@ namespace MilitaryShooter
         public bool MoveDown { get; set; }
 
         public event Action<Character>? TriggerSpawnBullet;
+
+        protected Character()
+        {
+            Speed = DefaultSpeed;
+            Width = DefaultCharacterSide;
+            Height = DefaultCharacterSide;
+        }
 
         public void SetAim((double X, double Y) aim)
         {
@@ -55,11 +63,11 @@ namespace MilitaryShooter
             }
             if (MoveUp && PositionLT.Y > 0)
             {
-                PositionLT = (PositionLT.X, PositionLT.Y - (Speed));
+                PositionLT = (PositionLT.X, PositionLT.Y - Speed);
             }
             if (MoveDown && PositionLT.Y < GameEngine.ResY - Height)
             {
-                PositionLT = (PositionLT.X, PositionLT.Y + (Speed));
+                PositionLT = (PositionLT.X, PositionLT.Y + Speed);
             }
             return PositionLT;
         }
