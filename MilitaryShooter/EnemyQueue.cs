@@ -9,6 +9,11 @@
             NextEnemy = new Enemy();
         }
 
+        public EnemyQueue(Character character)
+        {
+            NextEnemy = new Enemy(character);
+        }
+
         public Enemy GetAndUpdate()
         {
             Enemy enemy = NextEnemy;

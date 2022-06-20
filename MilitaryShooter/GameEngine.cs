@@ -7,6 +7,7 @@ namespace MilitaryShooter
 {
     internal class GameEngine
     {
+        private readonly List<GameObject> gameObjectsToClean = new();
         public DispatcherTimer GameTimer { get; } = new();
         public static double ResX { get; private set; }
         public static double ResY { get; private set; }
@@ -30,8 +31,8 @@ namespace MilitaryShooter
             GameObject.OnCreate += OnGameObjectCreate;
             ResX = resX;
             ResY = resY;
-            EnemyQueue = new EnemyQueue();
             Player = new Player();
+            EnemyQueue = new EnemyQueue(Player);
             CurrentEnemy = EnemyQueue.Clones(10);
 
             InitializeGameTimer();
@@ -39,10 +40,75 @@ namespace MilitaryShooter
             SpawnCharacters();
         }
 
-        private void InitializeGameTimer()
+        public void UpdateObjects()
         {
-            GameTimer.Interval = TimeSpan.FromMilliseconds(10);
-            GameTimer.Start();
+            for (int i = 0; i < GameObjects.Count; i++)
+            {
+                GameObject obj = GameObjects[i];
+                if (obj is Player)
+                {
+                    obj.Move();
+                }
+                else if(obj is Enemy enemy1)
+                {
+                    enemy1.MoveToPoint(Player.Aim);
+                }
+                else
+                {
+                    obj.MoveToPoint();
+                }
+
+                if (obj is Enemy enemy)
+                {
+                    enemy.LocksTarget(Player);
+                    //enemy.ShootAtTarget(Player);
+                }
+
+                if (obj.IsOutOfBounds())
+                {
+                    RemoveGameObject(obj);
+                }
+            }
+        }
+
+        public void UpdateCharacters()
+        {
+            foreach (Character obj in Characters)
+            {
+                obj.Move();
+                if (obj.IsOutOfBounds())
+                {
+                    RemoveGameObject(obj);
+                }
+
+                if (obj is Enemy enemy)
+                {
+                    enemy.LocksTarget(Player);
+                    enemy.ShootAtTarget(Player);
+                }
+            }
+        }
+
+        public void UpdateBullets()
+        {
+            foreach (Bullet obj in Bullets)
+            {
+                obj.Move();
+                if (obj.IsOutOfBounds())
+                {
+                    RemoveGameObject(obj);
+                }
+            }
+        }
+
+        public void CleanGameObjects()
+        {
+            if (gameObjectsToClean.Count > 0)
+            {
+                GameObjects.RemoveAll(o => gameObjectsToClean.Contains(o));
+                gameObjectsToClean.Clear();
+                GC.Collect();
+            }
         }
 
         public void SpawnCharacters()
@@ -51,6 +117,12 @@ namespace MilitaryShooter
             {
                 Spawn(character);
             }
+        }
+
+        private void InitializeGameTimer()
+        {
+            GameTimer.Interval = TimeSpan.FromMilliseconds(20);
+            GameTimer.Start();
         }
 
         private void Spawn(Character character)
@@ -77,26 +149,6 @@ namespace MilitaryShooter
             TriggerSpawnBulletModel?.Invoke(newBullet, character);
         }
 
-        public void UpdateBulletPos()
-        {
-            foreach (Bullet bullet in Bullets)
-            {
-                bullet.Travel();
-                if (bullet.IsOutOfBounds())
-                {
-                    RemoveGameObject(bullet);
-                }
-            }
-        }
-
-        public void UpdateCharacterPos()
-        {
-            foreach (Character character in Characters)
-            {
-                character.Move();
-            }
-        }
-
         private void OnGameObjectCreate(GameObject gameObject)
         {
             GameObjects.Add(gameObject);
@@ -105,9 +157,8 @@ namespace MilitaryShooter
 
         private void RemoveGameObject(GameObject gameObject)
         {
-            GameObjects.Remove(gameObject);
+            gameObjectsToClean.Add(gameObject);
             TriggerRemoveModel?.Invoke(gameObject);
-            GC.Collect();
         }
     }
 }

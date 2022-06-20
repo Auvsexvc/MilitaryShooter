@@ -9,7 +9,12 @@ namespace MilitaryShooter
         public (double X, double Y) Source { get; set; }
         public (double X, double Y) Target { get; set; }
 
-        public (double X, double Y) Travel()
+        public override void Move()
+        {
+            
+        }
+
+        public override void MoveToPoint()
         {
             double x, y;
             double c = Math.Sqrt(Math.Pow(Target.X - Source.X, 2) + Math.Pow(Target.Y - Source.Y, 2));
@@ -22,7 +27,6 @@ namespace MilitaryShooter
             x = (PositionLT.X + aPrim);
             y = (PositionLT.Y + bPrim);
             PositionLT = (x, y);
-            return (x, y);
         }
     }
 }

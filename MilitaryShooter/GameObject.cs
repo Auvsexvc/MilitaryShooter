@@ -14,12 +14,15 @@ namespace MilitaryShooter
 
         public static event Action<GameObject>? OnCreate;
 
+        public abstract void Move();
+        public abstract void MoveToPoint();
+
         protected GameObject()
         {
             Guid = Guid.NewGuid();
             OnCreate?.Invoke(this);
         }
 
-        public bool IsOutOfBounds() => PositionLT.X < 0 || PositionLT.X > GameEngine.ResX || PositionLT.Y < 0 || PositionLT.Y > GameEngine.ResY;
+        public bool IsOutOfBounds() => PositionLT.X < -64 || PositionLT.X > GameEngine.ResX + 64 || PositionLT.Y < -64 || PositionLT.Y > GameEngine.ResY + 64;
     }
 }

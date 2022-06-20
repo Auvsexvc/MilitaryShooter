@@ -51,28 +51,7 @@ namespace MilitaryShooter
             TriggerSpawnBullet?.Invoke(this);
         }
 
-        //public (double X, double Y) Move()
-        //{
-        //    if (MoveLeft && PositionLT.X > 0)
-        //    {
-        //        PositionLT = (PositionLT.X - Speed, PositionLT.Y);
-        //    }
-        //    if (MoveRight && PositionLT.X < GameEngine.ResX - Width)
-        //    {
-        //        PositionLT = (PositionLT.X + Speed, PositionLT.Y);
-        //    }
-        //    if (MoveUp && PositionLT.Y > 0)
-        //    {
-        //        PositionLT = (PositionLT.X, PositionLT.Y - Speed);
-        //    }
-        //    if (MoveDown && PositionLT.Y < GameEngine.ResY - Height)
-        //    {
-        //        PositionLT = (PositionLT.X, PositionLT.Y + Speed);
-        //    }
-        //    return PositionLT;
-        //}
-
-        public void Move()
+        public override void Move()
         {
             if (MoveLeft && PositionLT.X > 0)
             {
@@ -90,6 +69,36 @@ namespace MilitaryShooter
             {
                 PositionLT = (PositionLT.X, PositionLT.Y + Speed);
             }
+        }
+
+        public override void MoveToPoint()
+        {
+            double x, y;
+            double c = Math.Sqrt(Math.Pow(Aim.X - PositionLT.X, 2) + Math.Pow(Aim.Y - PositionLT.Y, 2));
+            double a = Aim.X - PositionLT.X;
+            double b = Aim.Y - PositionLT.Y;
+            double cPrim = Speed;
+            double aPrim = (a * cPrim) / c;
+            double bPrim = (b * cPrim) / c;
+
+            x = (PositionLT.X + aPrim);
+            y = (PositionLT.Y + bPrim);
+            PositionLT = (x, y);
+        }
+
+        public void MoveToPoint((double X, double Y) p)
+        {
+            double x, y;
+            double c = Math.Sqrt(Math.Pow(p.X - PositionLT.X, 2) + Math.Pow(p.Y - PositionLT.Y, 2));
+            double a = p.X - PositionLT.X;
+            double b = p.Y - PositionLT.Y;
+            double cPrim = Speed;
+            double aPrim = (a * cPrim) / c;
+            double bPrim = (b * cPrim) / c;
+
+            x = (PositionLT.X + aPrim);
+            y = (PositionLT.Y + bPrim);
+            PositionLT = (x, y);
         }
     }
 }
