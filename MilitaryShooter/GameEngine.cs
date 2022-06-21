@@ -33,7 +33,7 @@ namespace MilitaryShooter
             ResY = resY;
             Player = new Player();
             EnemyQueue = new EnemyQueue(Player);
-            CurrentEnemy = EnemyQueue.Clones(10);
+            CurrentEnemy = EnemyQueue.Clones(0);
 
             InitializeGameTimer();
             SpawnBullets();
@@ -45,11 +45,18 @@ namespace MilitaryShooter
             for (int i = 0; i < GameObjects.Count; i++)
             {
                 GameObject obj = GameObjects[i];
-                if (obj is Player)
+                if (obj is Player player)
                 {
-                    obj.Move();
+                    if (player.PointsToMoveTo.Count > 0)
+                    {
+                        player.MoveToPoint();
+                    }
+                    else
+                    {
+                        player.Move();
+                    }
                 }
-                else if(obj is Enemy enemy1)
+                else if (obj is Enemy enemy1)
                 {
                     enemy1.MoveToPoint(Player.Aim);
                 }

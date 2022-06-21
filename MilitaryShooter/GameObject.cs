@@ -15,7 +15,10 @@ namespace MilitaryShooter
         public static event Action<GameObject>? OnCreate;
 
         public abstract void Move();
+
         public abstract void MoveToPoint();
+
+        protected abstract (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target);
 
         protected GameObject()
         {

@@ -4,29 +4,39 @@ namespace MilitaryShooter
 {
     internal class Bullet : GameObject
     {
-        public new double Speed { get; set; } = 100;
-        public double Damage { get; set; } = 25;
+        private const double DefaultSpeed = 100;
+        private const double DefaultDamage = 25;
+
+        public new double Speed { get; }
+        public double Damage { get; }
         public (double X, double Y) Source { get; set; }
         public (double X, double Y) Target { get; set; }
 
+        public Bullet()
+        {
+            Speed = DefaultSpeed;
+            Damage = DefaultDamage;
+        }
+
         public override void Move()
         {
-            
         }
 
         public override void MoveToPoint()
         {
-            double x, y;
-            double c = Math.Sqrt(Math.Pow(Target.X - Source.X, 2) + Math.Pow(Target.Y - Source.Y, 2));
-            double a = Target.X - Source.X;
-            double b = Target.Y - Source.Y;
+            Displacement(Source, Target);
+        }
+
+        protected override (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)
+        {
+            double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
+            double a = target.X - source.X;
+            double b = target.Y - source.Y;
             double cPrim = Speed;
             double aPrim = (a * cPrim) / c;
             double bPrim = (b * cPrim) / c;
 
-            x = (PositionLT.X + aPrim);
-            y = (PositionLT.Y + bPrim);
-            PositionLT = (x, y);
+            return PositionLT = (PositionLT.X + aPrim, PositionLT.Y + bPrim);
         }
     }
 }

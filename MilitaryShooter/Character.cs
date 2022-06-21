@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace MilitaryShooter
 {
@@ -9,7 +11,7 @@ namespace MilitaryShooter
 
         public (double X, double Y) Aim { get; set; }
 
-        public double Direction
+        public double Angle
         {
             get
             {
@@ -18,10 +20,18 @@ namespace MilitaryShooter
                 {
                     angle += 180;
                 }
+                else if (angle < 0)
+                {
+                    angle = 360 + angle;
+                }
+
                 return angle;
             }
         }
 
+        public double Radians => Math.Atan((Aim.Y - CenterPosition.Y) / (Aim.X - CenterPosition.X));
+        public List<(double X, double Y)> PointsToMoveTo { get; set; } = new();
+        public (double X, double Y) CurrentMoveToPoint => PointsToMoveTo.FirstOrDefault();
         public bool MoveLeft { get; set; }
         public bool MoveRight { get; set; }
         public bool MoveUp { get; set; }
@@ -41,17 +51,85 @@ namespace MilitaryShooter
             Aim = (aim.X > GameEngine.ResX ? GameEngine.ResX : aim.X, aim.Y > GameEngine.ResY ? GameEngine.ResY : aim.Y);
         }
 
-        public (double X, double Y) SetCenterPosition()
-        {
-            return (PositionLT.X + (Width / 2), PositionLT.Y + (Height / 2));
-        }
-
         public void Shoot()
         {
             TriggerSpawnBullet?.Invoke(this);
         }
 
+        protected override (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)
+        {
+            double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
+            double a = target.X - source.X;
+            double b = target.Y - source.Y;
+            double cPrim = Speed;
+            double aPrim = (a * cPrim) / c;
+            double bPrim = (b * cPrim) / c;
+
+            return (PositionLT.X + aPrim, PositionLT.Y + bPrim);
+        }
+
         public override void Move()
+        {
+            (double x, double y)d = Displacement(PositionLT, Aim);
+            double moveAngle = 0;
+            double moveRadians = moveAngle * Math.PI / 180;
+            (double X, double Y) NewPositionLT;
+
+            if (MoveLeft)
+            {
+                moveAngle = (-90);
+                moveRadians += moveAngle * Math.PI / 180;
+            }
+            if (MoveLeft && MoveUp)
+            {
+                moveAngle = 45;
+                moveRadians += moveAngle * Math.PI / 180;
+            }
+            if (MoveLeft && MoveDown)
+            {
+                moveAngle = 135;
+                moveRadians += moveAngle * Math.PI / 180;
+            }
+            if (MoveRight)
+            {
+                moveAngle = 90;
+                moveRadians += moveAngle * Math.PI / 180;
+            }
+            if (MoveRight && MoveUp)
+            {
+                moveAngle = (-45);
+                moveRadians += moveAngle * Math.PI / 180;
+            }
+            if (MoveRight && MoveDown)
+            {
+                moveAngle = (-135);
+                moveRadians += moveAngle * Math.PI / 180;
+            }
+            if (MoveUp)
+            {
+                moveAngle = 0;
+                moveRadians += moveAngle * Math.PI / 180;
+            }
+            if (MoveDown)
+            {
+                moveAngle = 180;
+                moveRadians += moveAngle * Math.PI / 180;
+            }
+            if (!MoveDown && !MoveUp && !MoveLeft && !MoveRight)
+            {
+                return;
+            }
+
+            NewPositionLT = (((d.x - PositionLT.X) * Math.Cos(moveRadians)) - ((d.y - PositionLT.Y) * Math.Sin(moveRadians)), ((d.x - PositionLT.X) * Math.Sin(moveRadians)) + ((d.y - PositionLT.Y) * Math.Cos(moveRadians)));
+            if (IsMoveOutOfBounds((PositionLT.X + NewPositionLT.X, PositionLT.Y + NewPositionLT.Y)))
+            {
+                return;
+            }
+
+            PositionLT = (PositionLT.X + NewPositionLT.X, PositionLT.Y + NewPositionLT.Y);
+        }
+
+        public void AltMove()
         {
             if (MoveLeft && PositionLT.X > 0)
             {
@@ -73,32 +151,39 @@ namespace MilitaryShooter
 
         public override void MoveToPoint()
         {
-            double x, y;
-            double c = Math.Sqrt(Math.Pow(Aim.X - PositionLT.X, 2) + Math.Pow(Aim.Y - PositionLT.Y, 2));
-            double a = Aim.X - PositionLT.X;
-            double b = Aim.Y - PositionLT.Y;
-            double cPrim = Speed;
-            double aPrim = (a * cPrim) / c;
-            double bPrim = (b * cPrim) / c;
+            if (PointsToMoveTo.Count > 0)
+            {
+                (double x, double y) d = Displacement(PositionLT, PointsToMoveTo[0]);
 
-            x = (PositionLT.X + aPrim);
-            y = (PositionLT.Y + bPrim);
-            PositionLT = (x, y);
+                if (Math.Abs(PositionLT.X - PointsToMoveTo[0].X) <= Width/2 && Math.Abs(PositionLT.Y - PointsToMoveTo[0].Y) <= Height/2)
+                {
+                    PointsToMoveTo.RemoveAt(0);
+                }
+
+                if (!IsMoveOutOfBounds(PositionLT))
+                {
+                    PositionLT = d;
+                }
+            }
         }
 
         public void MoveToPoint((double X, double Y) p)
         {
-            double x, y;
-            double c = Math.Sqrt(Math.Pow(p.X - PositionLT.X, 2) + Math.Pow(p.Y - PositionLT.Y, 2));
-            double a = p.X - PositionLT.X;
-            double b = p.Y - PositionLT.Y;
-            double cPrim = Speed;
-            double aPrim = (a * cPrim) / c;
-            double bPrim = (b * cPrim) / c;
+            (double x, double y) d = Displacement(PositionLT, p);
 
-            x = (PositionLT.X + aPrim);
-            y = (PositionLT.Y + bPrim);
-            PositionLT = (x, y);
+            if (!IsMoveOutOfBounds(PositionLT))
+            {
+                PositionLT = d;
+            }
         }
+
+        public void SetPath((double, double) p)
+        {
+            PointsToMoveTo.Clear();
+            PointsToMoveTo.Add(p);
+        }
+
+        public bool IsMoveOutOfBounds((double X, double Y) valueTuple) =>
+            valueTuple.X < 0 || valueTuple.X > GameEngine.ResX - Width || (valueTuple.Y < 0 || valueTuple.Y > GameEngine.ResY - Height);
     }
 }

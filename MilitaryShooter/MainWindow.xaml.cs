@@ -40,8 +40,13 @@ namespace MilitaryShooter
             //gameEngine.UpdateBullets();
             DrawObjects();
             DrawLinesOfFire();
-
+            UpdateLabels();
             gameEngine.CleanGameObjects();
+        }
+
+        private void UpdateLabels()
+        {
+            Angle.Content = $"Angle: {gameEngine.Player.Angle}";
         }
 
         private void SpawnCharacter(Character character)
@@ -74,7 +79,7 @@ namespace MilitaryShooter
                 RenderTransformOrigin = new Point(0.0, 0.0),
                 Fill = Brushes.Red,
                 Stroke = Brushes.Yellow,
-                RenderTransform = (RotateTransform)(new(character.Direction))
+                RenderTransform = (RotateTransform)(new(character.Angle))
             };
             Canvas.SetLeft(newBullet, character.CenterPosition.X);
             Canvas.SetTop(newBullet, character.CenterPosition.Y);
@@ -95,7 +100,7 @@ namespace MilitaryShooter
                     {
                         rect.RenderTransform = (RotateTransform)(new()
                         {
-                            Angle = character.Direction
+                            Angle = character.Angle
                         });
                     }
                 }
@@ -139,18 +144,22 @@ namespace MilitaryShooter
             {
                 case Key.A:
                     gameEngine.Player.MoveLeft = true;
+                    gameEngine.Player.PointsToMoveTo.Clear();
                     break;
 
                 case Key.D:
                     gameEngine.Player.MoveRight = true;
+                    gameEngine.Player.PointsToMoveTo.Clear();
                     break;
 
                 case Key.W:
                     gameEngine.Player.MoveUp = true;
+                    gameEngine.Player.PointsToMoveTo.Clear();
                     break;
 
                 case Key.S:
                     gameEngine.Player.MoveDown = true;
+                    gameEngine.Player.PointsToMoveTo.Clear();
                     break;
             }
         }
@@ -197,6 +206,12 @@ namespace MilitaryShooter
 
         private void GameCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
+        }
+
+        private void GameCanvas_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Point position = e.GetPosition((IInputElement)sender);
+            gameEngine.Player.SetPath((position.X, position.Y));
         }
     }
 }
