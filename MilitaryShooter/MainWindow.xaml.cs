@@ -19,11 +19,11 @@ namespace MilitaryShooter
         public MainWindow()
         {
             InitializeComponent();
+            CompositionTarget.Rendering += OnRender;
             gameEngine = new(GameCanvas.Width, GameCanvas.Height);
             gameEngine.TriggerSpawnBulletModel += SpawnBullet;
             gameEngine.TriggerSpawnModel += SpawnCharacter;
             gameEngine.TriggerRemoveModel += RemoveModel;
-            gameEngine.GameTimer.Tick += GameLoop;
             SetUpGame();
         }
 
@@ -33,11 +33,10 @@ namespace MilitaryShooter
             gameEngine.SpawnCharacters();
         }
 
-        private void GameLoop(object? sender, EventArgs e)
+        public void OnRender(object? sender, EventArgs e)
         {
             gameEngine.UpdateObjects();
-            //gameEngine.UpdateCharacters();
-            //gameEngine.UpdateBullets();
+
             DrawObjects();
             DrawLinesOfFire();
             UpdateLabels();

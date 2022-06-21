@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Threading;
 
 namespace MilitaryShooter
 {
     internal class GameEngine
     {
         private readonly List<GameObject> gameObjectsToClean = new();
-        public DispatcherTimer GameTimer { get; } = new();
         public static double ResX { get; private set; }
         public static double ResY { get; private set; }
         public Player Player { get; }
@@ -35,7 +33,6 @@ namespace MilitaryShooter
             EnemyQueue = new EnemyQueue(Player);
             CurrentEnemy = EnemyQueue.Clones(0);
 
-            InitializeGameTimer();
             SpawnBullets();
             SpawnCharacters();
         }
@@ -124,12 +121,6 @@ namespace MilitaryShooter
             {
                 Spawn(character);
             }
-        }
-
-        private void InitializeGameTimer()
-        {
-            GameTimer.Interval = TimeSpan.FromMilliseconds(20);
-            GameTimer.Start();
         }
 
         private void Spawn(Character character)
