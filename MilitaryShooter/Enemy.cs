@@ -10,7 +10,7 @@ namespace MilitaryShooter
         public Enemy()
         {
             Name = "Enemy";
-            Speed = rand.Next(1, 4) + rand.NextDouble();
+            Speed = rand.Next(0, 3) + rand.NextDouble();
             PositionLT = (rand.Next(0, (int)GameEngine.ResX) - (Width / 2), rand.Next(0, (int)GameEngine.ResY) - (Height / 2));
             Aim = (rand.Next(0, (int)GameEngine.ResX), rand.Next(0, (int)GameEngine.ResY));
         }

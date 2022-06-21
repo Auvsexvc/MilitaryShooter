@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
@@ -16,10 +18,24 @@ namespace MilitaryShooter
     {
         private readonly GameEngine gameEngine;
 
+        private readonly DoubleAnimation fadeOutAnimation = new()
+        {
+            Duration = TimeSpan.FromMilliseconds(100),
+            From = 1,
+            To = 0.1
+        };
+
+        private readonly DoubleAnimation fadeInAnimation = new()
+        {
+            Duration = TimeSpan.FromMilliseconds(100),
+            From = 0,
+            To = 1
+        };
+
         public MainWindow()
         {
             InitializeComponent();
-            CompositionTarget.Rendering += OnRender;
+            CompositionTargetEx.FrameUpdating += OnRender;
             gameEngine = new(GameCanvas.Width, GameCanvas.Height);
             gameEngine.TriggerSpawnBulletModel += SpawnBullet;
             gameEngine.TriggerSpawnModel += SpawnCharacter;
@@ -139,50 +155,12 @@ namespace MilitaryShooter
 
         private void GameCanvas_KeyDown(object sender, KeyEventArgs e)
         {
-            switch (e.Key)
-            {
-                case Key.A:
-                    gameEngine.Player.MoveLeft = true;
-                    gameEngine.Player.PointsToMoveTo.Clear();
-                    break;
-
-                case Key.D:
-                    gameEngine.Player.MoveRight = true;
-                    gameEngine.Player.PointsToMoveTo.Clear();
-                    break;
-
-                case Key.W:
-                    gameEngine.Player.MoveUp = true;
-                    gameEngine.Player.PointsToMoveTo.Clear();
-                    break;
-
-                case Key.S:
-                    gameEngine.Player.MoveDown = true;
-                    gameEngine.Player.PointsToMoveTo.Clear();
-                    break;
-            }
+            GameControl.KeyDown(this, gameEngine.Player, e);
         }
 
         private void GameCanvas_KeyUp(object sender, KeyEventArgs e)
         {
-            switch (e.Key)
-            {
-                case Key.A:
-                    gameEngine.Player.MoveLeft = false;
-                    break;
-
-                case Key.D:
-                    gameEngine.Player.MoveRight = false;
-                    break;
-
-                case Key.W:
-                    gameEngine.Player.MoveUp = false;
-                    break;
-
-                case Key.S:
-                    gameEngine.Player.MoveDown = false;
-                    break;
-            }
+            GameControl.KeyUp(gameEngine.Player, e);
         }
 
         private void RemoveModel(GameObject gameObject)
@@ -192,6 +170,7 @@ namespace MilitaryShooter
 
         private void Quit_Click(object sender, RoutedEventArgs e)
         {
+            Close();
         }
 
         private void PlayAgain_Click(object sender, RoutedEventArgs e)
@@ -211,6 +190,66 @@ namespace MilitaryShooter
         {
             Point position = e.GetPosition((IInputElement)sender);
             gameEngine.Player.SetPath((position.X, position.Y));
+        }
+
+        public async Task OpenGamePanel()
+        {
+            if (GameMenu.Visibility == Visibility.Hidden)
+            {
+                CompositionTarget.Rendering -= OnRender;
+                await TransitionToEndScreen();
+            }
+            else
+            {
+                await TransitionToGameScreen();
+                GameCanvas.Focus();
+                CompositionTarget.Rendering += OnRender;
+            }
+        }
+
+        private async Task TransitionToGameScreen()
+        {
+            await FadeOut(GameMenu);
+            await FadeIn(GameCanvas);
+        }
+
+        private async Task TransitionToEndScreen()
+        {
+            await FadeOut(GameCanvas);
+            await FadeIn(GameMenu);
+        }
+
+        private async Task FadeOut(UIElement e)
+        {
+            e.BeginAnimation(OpacityProperty, fadeOutAnimation);
+            await Task.Delay(fadeOutAnimation.Duration.TimeSpan);
+            if (e == GameMenu)
+            {
+                e.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                e.Opacity = 0.5;
+            }
+        }
+
+        private async Task FadeIn(UIElement e)
+        {
+            e.BeginAnimation(OpacityProperty, fadeInAnimation);
+            await Task.Delay(fadeInAnimation.Duration.TimeSpan);
+            if (e == GameMenu)
+            {
+                e.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                e.Opacity = 0.5;
+            }
+        }
+
+        private async void Continue_Click(object sender, RoutedEventArgs e)
+        {
+            await OpenGamePanel();
         }
     }
 }

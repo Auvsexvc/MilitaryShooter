@@ -6,7 +6,7 @@ namespace MilitaryShooter
 {
     internal abstract class Character : GameObject
     {
-        private const double DefaultSpeed = 3.0;
+        private const double DefaultSpeed = 2.0;
         private const double DefaultCharacterSide = 32;
 
         public (double X, double Y) Aim { get; set; }

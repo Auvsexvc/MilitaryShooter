@@ -9,7 +9,7 @@ namespace MilitaryShooter
         private readonly List<GameObject> gameObjectsToClean = new();
         public static double ResX { get; private set; }
         public static double ResY { get; private set; }
-        public Player Player { get; }
+        public Player Player { get; set; }
         public EnemyQueue EnemyQueue { get; }
         public Enemy CurrentEnemy { get; }
         public List<GameObject> GameObjects { get; } = new List<GameObject>();
@@ -130,9 +130,9 @@ namespace MilitaryShooter
 
         private void SpawnBullets()
         {
-            foreach (var item in Characters)
+            foreach (Character character in Characters)
             {
-                item.TriggerSpawnBullet += SpawnBulletFiredBy;
+                character.TriggerSpawnBullet += SpawnBulletFiredBy;
             }
         }
 

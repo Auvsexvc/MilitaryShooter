@@ -24,10 +24,11 @@
                 <Label Name="Angle" Content="Angle: 0" FontSize="18" FontWeight="Bold" Foreground="White" Canvas.Right="0" Canvas.Bottom="0" Margin="0,0,20,10" />
             </Canvas>
         </Viewbox>
-        <Grid x:Name="GameOverMenu"
+        <Grid x:Name="GameMenu"
               Background="#CC000000"
               Grid.RowSpan="2"
               Grid.ColumnSpan="3"
+              Opacity="0.6"
               Visibility="Hidden">
             <StackPanel HorizontalAlignment="Center"
                         VerticalAlignment="Center">
@@ -42,7 +43,15 @@
                            Foreground="White"
                            TextAlignment="Center"
                            Margin="36" />
-                <Button Content="Play Again"
+                <Button Content="Continue"
+                        Foreground="White"
+                        Background="DimGray"
+                        Margin="0,20,0,0"
+                        Padding="5"
+                        FontSize="24"
+                        MaxWidth="200"
+                        Click="Continue_Click" />
+                <Button Content="Restart"
                         Foreground="White"
                         Background="DimGray"
                         Margin="0,20,0,0"
