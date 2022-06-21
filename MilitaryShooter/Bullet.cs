@@ -1,42 +1,33 @@
-﻿using System;
-
-namespace MilitaryShooter
+﻿namespace MilitaryShooter
 {
-    internal class Bullet : GameObject
+    internal class Bullet : Projectile
     {
         private const double DefaultSpeed = 100;
         private const double DefaultDamage = 25;
+        private const double DefaultWidth = 10;
+        private const double DefaultHeight = 2;
 
-        public new double Speed { get; }
         public double Damage { get; }
-        public (double X, double Y) Source { get; set; }
-        public (double X, double Y) Target { get; set; }
+
+        public override double Speed { get; protected set; }
+        public override double Width { get; protected set; }
+        public override double Height { get; protected set; }
+        public bool IsTracer { get; private set; }
 
         public Bullet()
         {
             Speed = DefaultSpeed;
             Damage = DefaultDamage;
+            Width = DefaultWidth;
+            Height = DefaultHeight;
         }
 
-        public override void Move()
+        public void SetToTracerRound()
         {
-        }
-
-        public override void MoveToPoint()
-        {
-            Displacement(Source, Target);
-        }
-
-        protected override (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)
-        {
-            double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
-            double a = target.X - source.X;
-            double b = target.Y - source.Y;
-            double cPrim = Speed;
-            double aPrim = (a * cPrim) / c;
-            double bPrim = (b * cPrim) / c;
-
-            return PositionLT = (PositionLT.X + aPrim, PositionLT.Y + bPrim);
+            IsTracer = true;
+            Width += 40;
+            Height++;
+            Speed--;
         }
     }
 }

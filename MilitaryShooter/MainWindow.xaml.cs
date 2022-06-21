@@ -74,11 +74,11 @@ namespace MilitaryShooter
             {
                 Uid = bulletObj.Guid.ToString(),
                 Tag = "Bullet",
-                Height = 4,
-                Width = 50,
+                Height = bulletObj.Height,
+                Width = bulletObj.Width,
                 RenderTransformOrigin = new Point(0.0, 0.0),
-                Fill = Brushes.Red,
-                Stroke = Brushes.Yellow,
+                Fill = bulletObj.IsTracer ? Brushes.Gray : Brushes.Red,
+                Stroke = Brushes.LightYellow,
                 RenderTransform = (RotateTransform)(new(character.Angle))
             };
             Canvas.SetLeft(newBullet, character.CenterPosition.X);

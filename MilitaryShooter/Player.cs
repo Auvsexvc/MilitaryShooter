@@ -2,6 +2,8 @@
 {
     internal class Player : Character
     {
+        public override double Speed { get; protected set; }
+
         public Player()
         {
             Name = "PlayerOne";

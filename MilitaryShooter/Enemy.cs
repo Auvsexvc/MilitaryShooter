@@ -4,6 +4,7 @@ namespace MilitaryShooter
 {
     internal class Enemy : Character, ICloneable
     {
+        public override double Speed { get; protected set; }
         private readonly Random rand = new();
 
         public Enemy()

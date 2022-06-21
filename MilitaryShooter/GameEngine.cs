@@ -151,8 +151,9 @@ namespace MilitaryShooter
             {
                 Target = character.Aim,
                 Source = character.CenterPosition,
-                PositionLT = character.CenterPosition
+                PositionLT = character.CenterPosition,
             };
+            if (character.BulletsFired > 0 && character.BulletsFired % new Random().Next(3, 6) == 0) newBullet.SetToTracerRound();
             TriggerSpawnBulletModel?.Invoke(newBullet, character);
         }
 

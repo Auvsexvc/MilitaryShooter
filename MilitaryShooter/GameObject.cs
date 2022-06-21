@@ -4,11 +4,12 @@ namespace MilitaryShooter
 {
     internal abstract class GameObject
     {
-        public Guid Guid { get; set; }
+        private const int margin = 64;
+        public Guid Guid { get; protected set; }
         public string? Name { get; set; }
-        public double Speed { get; set; }
-        public double Width { get; set; }
-        public double Height { get; set; }
+        public abstract double Speed { get; protected set; }
+        public abstract double Width { get; protected set; }
+        public abstract double Height { get; protected set; }
         public (double X, double Y) PositionLT { get; set; }
         public (double X, double Y) CenterPosition => (PositionLT.X + (Width / 2), PositionLT.Y + (Height / 2));
 
@@ -26,6 +27,6 @@ namespace MilitaryShooter
             OnCreate?.Invoke(this);
         }
 
-        public bool IsOutOfBounds() => PositionLT.X < -64 || PositionLT.X > GameEngine.ResX + 64 || PositionLT.Y < -64 || PositionLT.Y > GameEngine.ResY + 64;
+        public bool IsOutOfBounds() => PositionLT.X < -margin || PositionLT.X > GameEngine.ResX + margin || PositionLT.Y < -margin || PositionLT.Y > GameEngine.ResY + margin;
     }
 }

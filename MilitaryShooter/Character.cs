@@ -32,10 +32,14 @@ namespace MilitaryShooter
         public double Radians => Math.Atan((Aim.Y - CenterPosition.Y) / (Aim.X - CenterPosition.X));
         public List<(double X, double Y)> PointsToMoveTo { get; set; } = new();
         public (double X, double Y) CurrentMoveToPoint => PointsToMoveTo.FirstOrDefault();
+        public override double Speed { get; protected set; }
+        public override double Width { get; protected set; }
+        public override double Height { get; protected set; }
         public bool MoveLeft { get; set; }
         public bool MoveRight { get; set; }
         public bool MoveUp { get; set; }
         public bool MoveDown { get; set; }
+        public int BulletsFired { get; set; }
 
         public event Action<Character>? TriggerSpawnBullet;
 
@@ -54,6 +58,7 @@ namespace MilitaryShooter
         public void Shoot()
         {
             TriggerSpawnBullet?.Invoke(this);
+            BulletsFired++;
         }
 
         protected override (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)
@@ -70,7 +75,7 @@ namespace MilitaryShooter
 
         public override void Move()
         {
-            (double x, double y)d = Displacement(PositionLT, Aim);
+            (double x, double y) = Displacement(PositionLT, Aim);
             double moveAngle = 0;
             double moveRadians = moveAngle * Math.PI / 180;
             (double X, double Y) NewPositionLT;
@@ -120,7 +125,7 @@ namespace MilitaryShooter
                 return;
             }
 
-            NewPositionLT = (((d.x - PositionLT.X) * Math.Cos(moveRadians)) - ((d.y - PositionLT.Y) * Math.Sin(moveRadians)), ((d.x - PositionLT.X) * Math.Sin(moveRadians)) + ((d.y - PositionLT.Y) * Math.Cos(moveRadians)));
+            NewPositionLT = (((x - PositionLT.X) * Math.Cos(moveRadians)) - ((y - PositionLT.Y) * Math.Sin(moveRadians)), ((x - PositionLT.X) * Math.Sin(moveRadians)) + ((y - PositionLT.Y) * Math.Cos(moveRadians)));
             if (IsMoveOutOfBounds((PositionLT.X + NewPositionLT.X, PositionLT.Y + NewPositionLT.Y)))
             {
                 return;
@@ -155,15 +160,16 @@ namespace MilitaryShooter
             {
                 (double x, double y) d = Displacement(PositionLT, PointsToMoveTo[0]);
 
-                if (Math.Abs(PositionLT.X - PointsToMoveTo[0].X) <= Width/2 && Math.Abs(PositionLT.Y - PointsToMoveTo[0].Y) <= Height/2)
+                if (Math.Abs(PositionLT.X - PointsToMoveTo[0].X) <= Width / 2 && Math.Abs(PositionLT.Y - PointsToMoveTo[0].Y) <= Height / 2)
                 {
                     PointsToMoveTo.RemoveAt(0);
                 }
 
-                if (!IsMoveOutOfBounds(PositionLT))
+                if (IsMoveOutOfBounds(d))
                 {
-                    PositionLT = d;
+                    return;
                 }
+                PositionLT = d;
             }
         }
 
@@ -171,10 +177,11 @@ namespace MilitaryShooter
         {
             (double x, double y) d = Displacement(PositionLT, p);
 
-            if (!IsMoveOutOfBounds(PositionLT))
+            if (IsMoveOutOfBounds(d))
             {
-                PositionLT = d;
+                return;
             }
+            PositionLT = d;
         }
 
         public void SetPath((double, double) p)
