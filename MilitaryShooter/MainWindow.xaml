@@ -18,13 +18,15 @@
                     MouseLeftButtonUp="GameCanvas_MouseLeftButtonUp"
                     MouseRightButtonDown="GameCanvas_MouseRightButtonDown"
                     KeyDown="GameCanvas_KeyDown" 
-                    KeyUp="GameCanvas_KeyUp">
+                    KeyUp="GameCanvas_KeyUp"
+                    Loaded="GameCanvas_Loaded" >
                 <Label Name="ScoreText" Content="Score: 0" FontSize="18" FontWeight="Bold" Foreground="White" Canvas.Left="0" Margin="20,10,0,0" />
                 <Label Name="Damage" Content="Damage: 0" FontSize="18" FontWeight="Bold" Foreground="White" Canvas.Right="0" Margin="0,10,20,0" />
                 <Label Name="Angle" Content="Angle: 0" FontSize="18" FontWeight="Bold" Foreground="White" Canvas.Right="0" Canvas.Bottom="0" Margin="0,0,20,10" />
             </Canvas>
         </Viewbox>
-        <Grid x:Name="GameMenu"
+        <Grid Name="GameMenu"
+              Focusable="True" 
               Background="#CC000000"
               Grid.RowSpan="2"
               Grid.ColumnSpan="3"

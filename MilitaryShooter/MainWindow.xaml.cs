@@ -17,12 +17,14 @@ namespace MilitaryShooter
     public partial class MainWindow : Window
     {
         private readonly GameEngine gameEngine;
+        private const int maxDelay = 16;
+        private const int minDelay = 16;
 
         private readonly DoubleAnimation fadeOutAnimation = new()
         {
             Duration = TimeSpan.FromMilliseconds(100),
             From = 1,
-            To = 0.1
+            To = 0
         };
 
         private readonly DoubleAnimation fadeInAnimation = new()
@@ -35,7 +37,7 @@ namespace MilitaryShooter
         public MainWindow()
         {
             InitializeComponent();
-            CompositionTargetEx.FrameUpdating += OnRender;
+            //CompositionTargetEx.FrameUpdating += OnRender;
             gameEngine = new(GameCanvas.Width, GameCanvas.Height);
             gameEngine.TriggerSpawnBulletModel += SpawnBullet;
             gameEngine.TriggerSpawnModel += SpawnCharacter;
@@ -48,15 +50,25 @@ namespace MilitaryShooter
             GameCanvas.Focus();
             gameEngine.SpawnCharacters();
         }
-
-        public void OnRender(object? sender, EventArgs e)
+        private async void GameCanvas_Loaded(object sender, RoutedEventArgs e)
         {
-            gameEngine.UpdateObjects();
+            await GameLoop();
+        }
 
-            DrawObjects();
-            DrawLinesOfFire();
-            UpdateLabels();
-            gameEngine.CleanGameObjects();
+        private async Task GameLoop()
+        {
+            while (!gameEngine.Paused)
+            {
+                int delay = Math.Max(minDelay, maxDelay);
+                await Task.Delay(delay);
+
+                gameEngine.UpdateObjects();
+
+                DrawObjects();
+                DrawLinesOfFire();
+                UpdateLabels();
+                gameEngine.CleanGameObjects();
+            }
         }
 
         private void UpdateLabels()
@@ -77,7 +89,6 @@ namespace MilitaryShooter
                 Stroke = character is Enemy ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.Blue),
                 RenderTransformOrigin = new Point(0.5, 0.5)
             };
-
             GameCanvas.Children.Add(characterRect);
             Canvas.SetLeft(characterRect, character.CenterPosition.X);
             Canvas.SetTop(characterRect, character.CenterPosition.Y);
@@ -147,12 +158,6 @@ namespace MilitaryShooter
             }
         }
 
-        private void MouseMoveHandler(object sender, MouseEventArgs e)
-        {
-            Point position = e.GetPosition((IInputElement)sender);
-            gameEngine.Player.SetAim((position.X, position.Y));
-        }
-
         private void GameCanvas_KeyDown(object sender, KeyEventArgs e)
         {
             GameControl.KeyDown(this, gameEngine.Player, e);
@@ -161,20 +166,6 @@ namespace MilitaryShooter
         private void GameCanvas_KeyUp(object sender, KeyEventArgs e)
         {
             GameControl.KeyUp(gameEngine.Player, e);
-        }
-
-        private void RemoveModel(GameObject gameObject)
-        {
-            GameCanvas.Children.Remove(GameCanvas.Children.OfType<Rectangle>().FirstOrDefault(rect => (string)rect.Uid == gameObject.Guid.ToString()));
-        }
-
-        private void Quit_Click(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
-
-        private void PlayAgain_Click(object sender, RoutedEventArgs e)
-        {
         }
 
         private void GameCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -192,30 +183,48 @@ namespace MilitaryShooter
             gameEngine.Player.SetPath((position.X, position.Y));
         }
 
-        public async Task OpenGamePanel()
+        private void MouseMoveHandler(object sender, MouseEventArgs e)
         {
-            if (GameMenu.Visibility == Visibility.Hidden)
-            {
-                CompositionTarget.Rendering -= OnRender;
-                await TransitionToEndScreen();
-            }
-            else
-            {
-                await TransitionToGameScreen();
-                GameCanvas.Focus();
-                CompositionTarget.Rendering += OnRender;
-            }
+            Point position = e.GetPosition((IInputElement)sender);
+            gameEngine.Player.SetAim((position.X, position.Y));
         }
 
-        private async Task TransitionToGameScreen()
+        private void PlayAgain_Click(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void Quit_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void RemoveModel(GameObject gameObject)
+        {
+            GameCanvas.Children.Remove(GameCanvas.Children.OfType<Rectangle>().FirstOrDefault(rect => (string)rect.Uid == gameObject.Guid.ToString()));
+        }
+
+        public async Task GameMenuOpen()
+        {
+            gameEngine.Pause();
+            await TransitionToGameMenu();
+        }
+
+        public async Task GameMenuClose()
+        {
+            await TransitionToGameCanvas();
+            gameEngine.UnPause();
+            GameCanvas.Focus();
+            await GameLoop();
+        }
+
+        private async Task TransitionToGameCanvas()
         {
             await FadeOut(GameMenu);
-            await FadeIn(GameCanvas);
+            GameMenu.Visibility = Visibility.Hidden;
         }
 
-        private async Task TransitionToEndScreen()
+        private async Task TransitionToGameMenu()
         {
-            await FadeOut(GameCanvas);
             await FadeIn(GameMenu);
         }
 
@@ -223,33 +232,19 @@ namespace MilitaryShooter
         {
             e.BeginAnimation(OpacityProperty, fadeOutAnimation);
             await Task.Delay(fadeOutAnimation.Duration.TimeSpan);
-            if (e == GameMenu)
-            {
-                e.Visibility = Visibility.Hidden;
-            }
-            else
-            {
-                e.Opacity = 0.5;
-            }
+            e.Visibility = Visibility.Hidden;
         }
 
         private async Task FadeIn(UIElement e)
         {
             e.BeginAnimation(OpacityProperty, fadeInAnimation);
             await Task.Delay(fadeInAnimation.Duration.TimeSpan);
-            if (e == GameMenu)
-            {
-                e.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                e.Opacity = 0.5;
-            }
+            e.Visibility = Visibility.Visible;
         }
 
         private async void Continue_Click(object sender, RoutedEventArgs e)
         {
-            await OpenGamePanel();
+            await GameMenuClose();
         }
     }
 }

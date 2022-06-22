@@ -15,6 +15,7 @@ namespace MilitaryShooter
         public List<GameObject> GameObjects { get; } = new List<GameObject>();
         public List<Character> Characters => GameObjects.OfType<Character>().ToList();
         public List<Bullet> Bullets => GameObjects.OfType<Bullet>().ToList();
+        public bool Paused { get; set; }
 
         public event Action<Bullet, Character>? TriggerSpawnBulletModel;
 
@@ -132,7 +133,7 @@ namespace MilitaryShooter
         {
             foreach (Character character in Characters)
             {
-                character.TriggerSpawnBullet += SpawnBulletFiredBy;
+                character.FireBullet += SpawnBulletFiredBy;
             }
         }
 
@@ -158,6 +159,16 @@ namespace MilitaryShooter
         {
             gameObjectsToClean.Add(gameObject);
             TriggerRemoveModel?.Invoke(gameObject);
+        }
+
+        public void Pause()
+        {
+            Paused = true;
+        }
+
+        public void UnPause()
+        {
+            Paused = false;
         }
     }
 }

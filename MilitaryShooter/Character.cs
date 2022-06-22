@@ -41,7 +41,7 @@ namespace MilitaryShooter
         public bool MoveDown { get; set; }
         public int BulletsFired { get; set; }
 
-        public event Action<Character>? TriggerSpawnBullet;
+        public event Action<Character>? FireBullet;
 
         protected Character()
         {
@@ -57,7 +57,7 @@ namespace MilitaryShooter
 
         public void Shoot()
         {
-            TriggerSpawnBullet?.Invoke(this);
+            FireBullet?.Invoke(this);
             BulletsFired++;
         }
 

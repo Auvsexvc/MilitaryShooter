@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace MilitaryShooter
@@ -33,7 +34,14 @@ namespace MilitaryShooter
                     player.PointsToMoveTo.Clear();
                     break;
                 case Key.Escape:
-                    _ = window.OpenGamePanel();
+                    if (window.GameMenu.Visibility != Visibility.Visible)
+                    {
+                        _ = window.GameMenuOpen();
+                    }
+                    else
+                    {
+                        _ = window.GameMenuClose();
+                    }
                     break;
             }
         }
