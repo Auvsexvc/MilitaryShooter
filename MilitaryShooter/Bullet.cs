@@ -16,10 +16,10 @@
 
         public Bullet()
         {
-            Speed = DefaultSpeed;
+            Speed = DefaultSpeed + (GameStatic.rand.NextDouble() * 10);
             Damage = DefaultDamage;
-            Width = DefaultWidth;
-            Height = DefaultHeight;
+            Width = DefaultWidth + GameStatic.rand.Next(0,11);
+            Height = DefaultHeight + GameStatic.rand.NextDouble();
         }
 
         public void SetToTracerRound()

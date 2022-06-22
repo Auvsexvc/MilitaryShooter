@@ -10,6 +10,7 @@ namespace MilitaryShooter
         public abstract double Speed { get; protected set; }
         public abstract double Width { get; protected set; }
         public abstract double Height { get; protected set; }
+        public int Health { get; set; }
         public (double X, double Y) PositionLT { get; set; }
         public (double X, double Y) CenterPosition => (PositionLT.X + (Width / 2), PositionLT.Y + (Height / 2));
 

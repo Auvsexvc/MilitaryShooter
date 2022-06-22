@@ -25,6 +25,8 @@ namespace MilitaryShooter
 
         public event Action<GameObject>? TriggerSpawn;
 
+        public event Action? GameRestarted;
+
         public GameEngine(double resX, double resY)
         {
             GameObject.OnCreate += OnGameObjectCreate;
@@ -145,7 +147,7 @@ namespace MilitaryShooter
                 Source = character.CenterPosition,
                 PositionLT = character.CenterPosition,
             };
-            if (character.BulletsFired > 0 && character.BulletsFired % new Random().Next(3, 6) == 0) newBullet.SetToTracerRound();
+            if (character.BulletsFired > 0 && character.BulletsFired % GameStatic.rand.Next(3, 6) == 0) newBullet.SetToTracerRound();
             TriggerSpawnBulletModel?.Invoke(newBullet, character);
         }
 
@@ -169,6 +171,12 @@ namespace MilitaryShooter
         public void UnPause()
         {
             Paused = false;
+        }
+
+        public void Reset()
+        {
+            GameObjects.Clear();
+            GameRestarted?.Invoke();
         }
     }
 }

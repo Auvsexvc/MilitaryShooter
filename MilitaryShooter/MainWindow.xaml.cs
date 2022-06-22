@@ -16,7 +16,7 @@ namespace MilitaryShooter
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly GameEngine gameEngine;
+        private GameEngine gameEngine;
         private const int maxDelay = 16;
         private const int minDelay = 16;
 
@@ -37,19 +37,50 @@ namespace MilitaryShooter
         public MainWindow()
         {
             InitializeComponent();
-            //CompositionTargetEx.FrameUpdating += OnRender;
             gameEngine = new(GameCanvas.Width, GameCanvas.Height);
-            gameEngine.TriggerSpawnBulletModel += SpawnBullet;
-            gameEngine.TriggerSpawnModel += SpawnCharacter;
-            gameEngine.TriggerRemoveModel += RemoveModel;
             SetUpGame();
         }
 
         private void SetUpGame()
         {
+            GameCanvas.Children.Clear();
             GameCanvas.Focus();
+            gameEngine = new(GameCanvas.Width, GameCanvas.Height);
+            gameEngine.GameRestarted += OnGameRestarted;
+            gameEngine.TriggerSpawnBulletModel += SpawnBullet;
+            gameEngine.TriggerSpawnModel += SpawnCharacter;
+            gameEngine.TriggerRemoveModel += RemoveModel;
             gameEngine.SpawnCharacters();
+            SpawnLabels();
         }
+
+        private void SpawnLabels()
+        {
+            //Label scoreLabel = new()
+            //{
+            //    Name = "Score",
+            //    Content = "Score: 0",
+            //    FontSize = 18,
+            //    FontWeight = FontWeights.Bold,
+            //    Foreground = Brushes.White,
+            //    Margin = new Thickness(20, 10, 0, 0),
+            //};
+            //Canvas.SetLeft(scoreLabel, 0);
+
+            Label healthLabel = new()
+            {
+                Name = "Health",
+                Content = $"Health: {gameEngine.Player.Health}",
+                Tag = "Player",
+                FontSize = 18,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.White,
+                Margin = new Thickness(0, 10, 20, 0),
+            };
+            GameCanvas.Children.Add(healthLabel);
+            Canvas.SetRight(healthLabel, 0);
+        }
+
         private async void GameCanvas_Loaded(object sender, RoutedEventArgs e)
         {
             await GameLoop();
@@ -73,7 +104,10 @@ namespace MilitaryShooter
 
         private void UpdateLabels()
         {
-            Angle.Content = $"Angle: {gameEngine.Player.Angle}";
+            foreach (Label label in GameCanvas.Children.OfType<Label>())
+            {
+                label.Content = $"{label.Name}: {gameEngine.Player.Health}";
+            }
         }
 
         private void SpawnCharacter(Character character)
@@ -115,16 +149,16 @@ namespace MilitaryShooter
 
         private void DrawObjects()
         {
-            foreach (UIElement rect in GameCanvas.Children.OfType<UIElement>())
+            foreach (UIElement element in GameCanvas.Children.OfType<UIElement>())
             {
-                GameObject obj = gameEngine.GameObjects.Find(b => b.Guid.ToString() == rect.Uid)!;
+                GameObject obj = gameEngine.GameObjects.Find(b => b.Guid.ToString() == element.Uid)!;
                 if (obj != null)
                 {
-                    Canvas.SetLeft(rect, obj.PositionLT.X);
-                    Canvas.SetTop(rect, obj.PositionLT.Y);
+                    Canvas.SetLeft(element, obj.PositionLT.X);
+                    Canvas.SetTop(element, obj.PositionLT.Y);
                     if (obj is Character character)
                     {
-                        rect.RenderTransform = (RotateTransform)(new()
+                        element.RenderTransform = (RotateTransform)(new()
                         {
                             Angle = character.Angle
                         });
@@ -146,7 +180,7 @@ namespace MilitaryShooter
                     X2 = character.Aim.X,
                     Y2 = character.Aim.Y,
                     StrokeThickness = 2,
-                    Opacity = 0.3,
+                    Opacity = 0.1,
                     Stroke = character is Player ? Brushes.LightGreen : Brushes.Red,
                 };
 
@@ -173,27 +207,25 @@ namespace MilitaryShooter
             gameEngine.Player.Shoot();
         }
 
-        private void GameCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-        }
-
         private void GameCanvas_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             Point position = e.GetPosition((IInputElement)sender);
             gameEngine.Player.SetPath((position.X, position.Y));
         }
 
-        private void MouseMoveHandler(object sender, MouseEventArgs e)
+        private void GameCanvas_MouseMoveHandler(object sender, MouseEventArgs e)
         {
             Point position = e.GetPosition((IInputElement)sender);
             gameEngine.Player.SetAim((position.X, position.Y));
         }
 
-        private void PlayAgain_Click(object sender, RoutedEventArgs e)
+        private async void GameMenu_Restart_Button(object sender, RoutedEventArgs e)
         {
+            gameEngine.Reset();
+            await GameLoop();
         }
 
-        private void Quit_Click(object sender, RoutedEventArgs e)
+        private void GameMenu_Quit_Button(object sender, RoutedEventArgs e)
         {
             Close();
         }
@@ -242,9 +274,17 @@ namespace MilitaryShooter
             e.Visibility = Visibility.Visible;
         }
 
-        private async void Continue_Click(object sender, RoutedEventArgs e)
+        private async void GameMenu_Continue_Button(object sender, RoutedEventArgs e)
         {
             await GameMenuClose();
+        }
+
+        private async void OnGameRestarted()
+        {
+            await TransitionToGameCanvas();
+            gameEngine = new(GameCanvas.Width, GameCanvas.Height);
+            SetUpGame();
+            await GameLoop();
         }
     }
 }

@@ -4,15 +4,15 @@ namespace MilitaryShooter
 {
     internal class Enemy : Character, ICloneable
     {
-        public override double Speed { get; protected set; }
-        private readonly Random rand = new();
+        public override double Speed { get; protected set; } 
 
         public Enemy()
         {
             Name = "Enemy";
-            Speed = rand.Next(0, 3) + rand.NextDouble();
-            PositionLT = (rand.Next(0, (int)GameEngine.ResX) - (Width / 2), rand.Next(0, (int)GameEngine.ResY) - (Height / 2));
-            Aim = (rand.Next(0, (int)GameEngine.ResX), rand.Next(0, (int)GameEngine.ResY));
+            Speed = GameStatic.rand.Next(1, 4) + GameStatic.rand.NextDouble();
+            PositionLT = (GameStatic.rand.Next((int)Width, (int)GameEngine.ResX) - (int)Width, GameStatic.rand.Next((int)Height, (int)GameEngine.ResY) - (int)Height);
+            Aim = (GameStatic.rand.Next(0, (int)GameEngine.ResX), GameStatic.rand.Next(0, (int)GameEngine.ResY));
+            Health = GameStatic.rand.Next(25, 201);
         }
 
         public Enemy(Character character) : this()
@@ -34,7 +34,7 @@ namespace MilitaryShooter
         {
             var clone = (Enemy)MemberwiseClone();
             clone.Guid = Guid.NewGuid();
-            clone.PositionLT = (rand.Next(0, (int)GameEngine.ResX) - (Width / 2), rand.Next(0, (int)GameEngine.ResY) - (Height / 2));
+            clone.PositionLT = (GameStatic.rand.Next(0, (int)GameEngine.ResX) - (Width / 2), GameStatic.rand.Next(0, (int)GameEngine.ResY) - (Height / 2));
 
             return clone;
         }

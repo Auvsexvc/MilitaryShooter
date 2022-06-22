@@ -9,6 +9,7 @@
             Name = "PlayerOne";
             Speed = 4;
             PositionLT = (GameEngine.ResX / 2.0, GameEngine.ResY / 2.0);
+            Health = 100;
         }
     }
 }

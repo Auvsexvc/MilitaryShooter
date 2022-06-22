@@ -13,16 +13,12 @@
                     Focusable="True" 
                     Height="900" 
                     Width="1600" 
-                    MouseMove="MouseMoveHandler" 
+                    MouseMove="GameCanvas_MouseMoveHandler" 
                     MouseLeftButtonDown="GameCanvas_MouseLeftButtonDown" 
-                    MouseLeftButtonUp="GameCanvas_MouseLeftButtonUp"
                     MouseRightButtonDown="GameCanvas_MouseRightButtonDown"
                     KeyDown="GameCanvas_KeyDown" 
                     KeyUp="GameCanvas_KeyUp"
                     Loaded="GameCanvas_Loaded" >
-                <Label Name="ScoreText" Content="Score: 0" FontSize="18" FontWeight="Bold" Foreground="White" Canvas.Left="0" Margin="20,10,0,0" />
-                <Label Name="Damage" Content="Damage: 0" FontSize="18" FontWeight="Bold" Foreground="White" Canvas.Right="0" Margin="0,10,20,0" />
-                <Label Name="Angle" Content="Angle: 0" FontSize="18" FontWeight="Bold" Foreground="White" Canvas.Right="0" Canvas.Bottom="0" Margin="0,0,20,10" />
             </Canvas>
         </Viewbox>
         <Grid Name="GameMenu"
@@ -52,7 +48,7 @@
                         Padding="5"
                         FontSize="24"
                         MaxWidth="200"
-                        Click="Continue_Click" />
+                        Click="GameMenu_Continue_Button" />
                 <Button Content="Restart"
                         Foreground="White"
                         Background="DimGray"
@@ -60,7 +56,7 @@
                         Padding="5"
                         FontSize="24"
                         MaxWidth="200"
-                        Click="PlayAgain_Click" />
+                        Click="GameMenu_Restart_Button" />
                 <Button Content="Quit"
                         Foreground="White"
                         Background="DimGray"
@@ -68,7 +64,7 @@
                         Padding="5"
                         FontSize="24"
                         MaxWidth="200"
-                        Click="Quit_Click" />
+                        Click="GameMenu_Quit_Button" />
             </StackPanel>
         </Grid>
     </Grid>
