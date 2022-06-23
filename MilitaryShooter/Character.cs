@@ -43,7 +43,6 @@ namespace MilitaryShooter
         public bool MoveDown { get; set; }
         public int BulletsFired { get; set; }
         public int RateOfFire { get; set; }
-
         public Stopwatch Stopwatch { get; protected set; } = new();
 
         public virtual event Action<Character>? FireBullet;
@@ -63,8 +62,8 @@ namespace MilitaryShooter
 
         public void Shoot()
         {
-                FireBullet?.Invoke(this);
-                BulletsFired++;
+            FireBullet?.Invoke(this);
+            BulletsFired++;
         }
 
         protected override (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)

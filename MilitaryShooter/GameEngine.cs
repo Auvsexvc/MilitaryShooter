@@ -46,6 +46,7 @@ namespace MilitaryShooter
             for (int i = 0; i < GameObjects.Count; i++)
             {
                 GameObject obj = GameObjects[i];
+
                 if (obj is Player player)
                 {
                     if (player.PointsToMoveTo.Count > 0)
@@ -57,51 +58,26 @@ namespace MilitaryShooter
                         player.Move();
                     }
                 }
-                else if (obj is Enemy enemy1)
+                else if (obj is Enemy enemy)
                 {
-                    enemy1.MoveToPoint(Player.Aim);
-                }
-                else
-                {
-                    obj.MoveToPoint();
-                }
-
-                if (obj is Enemy enemy)
-                {
+                    enemy.MoveToPoint(Player.Aim);
                     enemy.LocksTarget(Player);
                     enemy.ShootAtTarget(Player);
                 }
-
-                if (obj.IsOutOfBounds())
+                else if(obj is Bullet bullet)
                 {
-                    RemoveGameObject(obj);
-                }
-            }
-        }
-
-        public void UpdateCharacters()
-        {
-            foreach (Character obj in Characters)
-            {
-                obj.Move();
-                if (obj.IsOutOfBounds())
-                {
-                    RemoveGameObject(obj);
+                    GameObject? collider = bullet.CheckCollisions(GameObjects, Bullets);
+                    if (collider != null && collider != bullet.Shooter)
+                    {
+                        collider.Health -= 25;
+                        RemoveGameObject(obj);
+                    }
+                    else
+                    {
+                        bullet.MoveToPoint();
+                    }
                 }
 
-                if (obj is Enemy enemy)
-                {
-                    enemy.LocksTarget(Player);
-                    enemy.ShootAtTarget(Player);
-                }
-            }
-        }
-
-        public void UpdateBullets()
-        {
-            foreach (Bullet obj in Bullets)
-            {
-                obj.Move();
                 if (obj.IsOutOfBounds())
                 {
                     RemoveGameObject(obj);
@@ -115,6 +91,7 @@ namespace MilitaryShooter
             {
                 GameObjects.RemoveAll(o => gameObjectsToClean.Contains(o));
                 gameObjectsToClean.Clear();
+
                 GC.Collect();
             }
         }
@@ -147,8 +124,13 @@ namespace MilitaryShooter
                 Target = character.Aim,
                 Source = character.CenterPosition,
                 PositionLT = character.CenterPosition,
+                Shooter = character
             };
-            if (character.BulletsFired > 0 && character.BulletsFired % GameStatic.rand.Next(3, 6) == 0) newBullet.SetToTracerRound();
+            if (character.BulletsFired > 0 && character.BulletsFired % GameStatic.rand.Next(3, 6) == 0)
+            {
+                newBullet.SetToTracerRound();
+            }
+
             TriggerSpawnBulletModel?.Invoke(newBullet, character);
         }
 

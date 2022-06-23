@@ -19,6 +19,7 @@ namespace MilitaryShooter
     public partial class MainWindow : Window
     {
         private GameEngine gameEngine;
+        private readonly List<Shape> shapesToRemove = new();
         private const int maxDelay = 16;
         private const int minDelay = 16;
 
@@ -51,6 +52,7 @@ namespace MilitaryShooter
             //    ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/agrass.jpg")),
             //    Opacity = 2,
             //};
+            GameCanvas.Background = new SolidColorBrush(Color.FromArgb(255, 28, 28, 28));
             GameCanvas.Focus();
             gameEngine = new(GameCanvas.Width, GameCanvas.Height);
             gameEngine.GameRestarted += OnGameRestarted;
@@ -100,9 +102,9 @@ namespace MilitaryShooter
                 int delay = Math.Max(minDelay, maxDelay);
                 await Task.Delay(delay);
 
+                DrawObjects();
                 gameEngine.UpdateObjects();
 
-                DrawObjects();
                 DrawLinesOfFire();
                 UpdateLabels();
                 gameEngine.CleanGameObjects();
@@ -119,12 +121,13 @@ namespace MilitaryShooter
 
         private void SpawnCharacter(Character character)
         {
+            TranslateTransform moveTransform = new(character.Width / 2, character.Height / 2);
             List<UIElement> uIElements = new()
             {
                 new Ellipse()
                 {
                     Uid = character.Guid.ToString(),
-                    Tag = "Character",
+                    Tag = character,
                     Name = character.Name,
                     Height = character.Height,
                     Width = character.Width,
@@ -148,6 +151,9 @@ namespace MilitaryShooter
 
             foreach (UIElement element in uIElements)
             {
+                TransformGroup transformGroup = new();
+                transformGroup.Children.Add(moveTransform);
+                element.RenderTransform = transformGroup;
                 GameCanvas.Children.Add(element);
 
                 Canvas.SetLeft(element, character.PositionLT.X);
@@ -157,18 +163,21 @@ namespace MilitaryShooter
 
         private void SpawnBullet(Bullet bulletObj, Character character)
         {
+            (double Width, double Height) trailSize = (bulletObj.Trail.W, bulletObj.Trail.H);
+            TranslateTransform trailMoveTransform = new(bulletObj.Width - trailSize.Width, bulletObj.Height/2 - trailSize.Height/2);
+            TranslateTransform moveTransform = new(bulletObj.Width / 2, bulletObj.Height / 2);
+            RotateTransform rotateTransform = new(character.Angle);
             List<UIElement> uIElements = new()
             {
                 new Ellipse()
                 {
                     Uid = bulletObj.Guid.ToString(),
-                    Tag = "Bullet",
-                    Height = bulletObj.Height*10,
-                    Width = bulletObj.Width*10,
-                    RenderTransformOrigin = new Point(0.0, 0.0),
-                    Fill = Brushes.LightYellow,
+                    Tag = "BulletTrail",
+                    Height = bulletObj.Trail.H,
+                    Width = bulletObj.Trail.W,
+                    RenderTransformOrigin = new Point(0, 0),
+                    Fill = new SolidColorBrush(Color.FromArgb(123, 225, 219, 158)),
                     Opacity = 0.1,
-                    RenderTransform = (RotateTransform)(new(character.Angle))
                 },
                 new Ellipse()
                 {
@@ -179,12 +188,23 @@ namespace MilitaryShooter
                     RenderTransformOrigin = new Point(0.0, 0.0),
                     Fill = bulletObj.IsTracer ? Brushes.Gray : Brushes.Red,
                     Stroke = Brushes.LightYellow,
-                    RenderTransform = (RotateTransform)(new(character.Angle))
                 }
             };
 
             foreach (UIElement element in uIElements)
             {
+                TransformGroup transformGroup = new();
+
+                if (element is Ellipse ellipse && (string)ellipse.Tag == "BulletTrail")
+                {
+                    transformGroup.Children.Add(trailMoveTransform);
+                }
+                else
+                {
+                    transformGroup.Children.Add(moveTransform);
+                }
+                transformGroup.Children.Add(rotateTransform);
+                element.RenderTransform = transformGroup;
                 GameCanvas.Children.Add(element);
                 Canvas.SetLeft(element, character.CenterPosition.X);
                 Canvas.SetTop(element, character.CenterPosition.Y);
@@ -195,18 +215,20 @@ namespace MilitaryShooter
         {
             foreach (UIElement element in GameCanvas.Children.OfType<UIElement>())
             {
-                GameObject obj = gameEngine.GameObjects.Find(b => b.Guid.ToString() == element.Uid)!;
+                GameObject? obj = gameEngine.GameObjects.Find(b => b.Guid.ToString() == element.Uid);
                 if (obj != null)
                 {
-                    Canvas.SetLeft(element, obj.PositionLT.X);
-                    Canvas.SetTop(element, obj.PositionLT.Y);
                     if (obj is Character character)
                     {
-                        element.RenderTransform = (RotateTransform)(new()
-                        {
-                            Angle = character.Angle
-                        });
+                        TransformGroup transformGroup = new();
+                        TranslateTransform moveTransform = new(character.Width / 2, character.Height / 2);
+                        RotateTransform rotateTransform = new(character.Angle);
+                        //transformGroup.Children.Add(moveTransform);
+                        transformGroup.Children.Add(rotateTransform);
+                        element.RenderTransform = transformGroup;
                     }
+                    Canvas.SetLeft(element, obj.PositionLT.X);
+                    Canvas.SetTop(element, obj.PositionLT.Y);
                 }
             }
         }
@@ -276,7 +298,14 @@ namespace MilitaryShooter
 
         private void RemoveModel(GameObject gameObject)
         {
-            GameCanvas.Children.Remove(GameCanvas.Children.OfType<Rectangle>().FirstOrDefault(rect => (string)rect.Uid == gameObject.Guid.ToString()));
+            shapesToRemove.AddRange(GameCanvas.Children.OfType<Rectangle>().Where(rect => (string)rect.Uid == gameObject.Guid.ToString()));
+            shapesToRemove.AddRange(GameCanvas.Children.OfType<Ellipse>().Where(rect => (string)rect.Uid == gameObject.Guid.ToString()));
+
+            foreach (var item in shapesToRemove)
+            {
+                GameCanvas.Children.Remove(item);
+            }
+            shapesToRemove.Clear();
         }
 
         public async Task GameMenuOpen()

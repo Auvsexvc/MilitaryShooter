@@ -28,12 +28,11 @@
 
         public Enemy Clones(int clones)
         {
-            do
+            while (clones > 0)
             {
                 NextEnemy = new Enemy();
                 clones--;
             }
-            while (clones > 0);
 
             return NextEnemy;
         }
