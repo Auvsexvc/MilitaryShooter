@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace MilitaryShooter
 {
     internal class Enemy : Character, ICloneable
     {
-        public override double Speed { get; protected set; } 
+        private bool shotFired;
+        public override double Speed { get; protected set; }
 
         public Enemy()
         {
@@ -47,7 +49,23 @@ namespace MilitaryShooter
         public void ShootAtTarget(Character target)
         {
             Aim = target.CenterPosition;
-            this.Shoot();
+            if (!Stopwatch.IsRunning)
+            {
+                Stopwatch.Start();
+            }
+
+            if (Stopwatch.ElapsedMilliseconds % DefaultRateOfFire == 0 && !shotFired)
+            {
+                Shoot();
+                shotFired = true;
+            }
+            if (Stopwatch.ElapsedMilliseconds > DefaultRateOfFire)
+            {
+                Stopwatch.Stop();
+                Stopwatch.Reset();
+                shotFired = false;
+            }
+
         }
     }
 }

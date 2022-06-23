@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace MilitaryShooter
@@ -8,6 +9,7 @@ namespace MilitaryShooter
     {
         private const double DefaultSpeed = 2.0;
         private const double DefaultCharacterSide = 32;
+        protected const int DefaultRateOfFire = 1000;
 
         public (double X, double Y) Aim { get; set; }
 
@@ -40,14 +42,18 @@ namespace MilitaryShooter
         public bool MoveUp { get; set; }
         public bool MoveDown { get; set; }
         public int BulletsFired { get; set; }
+        public int RateOfFire { get; set; }
 
-        public event Action<Character>? FireBullet;
+        public Stopwatch Stopwatch { get; protected set; } = new();
+
+        public virtual event Action<Character>? FireBullet;
 
         protected Character()
         {
             Speed = DefaultSpeed;
             Width = DefaultCharacterSide;
             Height = DefaultCharacterSide;
+            RateOfFire = DefaultRateOfFire;
         }
 
         public void SetAim((double X, double Y) aim)
@@ -57,8 +63,8 @@ namespace MilitaryShooter
 
         public void Shoot()
         {
-            FireBullet?.Invoke(this);
-            BulletsFired++;
+                FireBullet?.Invoke(this);
+                BulletsFired++;
         }
 
         protected override (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)

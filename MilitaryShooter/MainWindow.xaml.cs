@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -44,6 +46,11 @@ namespace MilitaryShooter
         private void SetUpGame()
         {
             GameCanvas.Children.Clear();
+            //GameCanvas.Background = new ImageBrush()
+            //{
+            //    ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/agrass.jpg")),
+            //    Opacity = 2,
+            //};
             GameCanvas.Focus();
             gameEngine = new(GameCanvas.Width, GameCanvas.Height);
             gameEngine.GameRestarted += OnGameRestarted;
@@ -112,39 +119,76 @@ namespace MilitaryShooter
 
         private void SpawnCharacter(Character character)
         {
-            Rectangle characterRect = new()
+            List<UIElement> uIElements = new()
             {
-                Uid = character.Guid.ToString(),
-                Tag = "Character",
-                Name = character.Name,
-                Height = character.Height,
-                Width = character.Width,
-                Fill = new ImageBrush() { ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/soldier.png")) },
-                Stroke = character is Enemy ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.Blue),
-                RenderTransformOrigin = new Point(0.5, 0.5)
+                new Ellipse()
+                {
+                    Uid = character.Guid.ToString(),
+                    Tag = "Character",
+                    Name = character.Name,
+                    Height = character.Height,
+                    Width = character.Width,
+                    Fill = character is Enemy ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.White),
+                    Opacity = 0.2,
+                    RenderTransformOrigin = new Point(0.5, 0.5)
+                },
+                new Ellipse()
+                {
+                    Uid = character.Guid.ToString(),
+                    Tag = "Character",
+                    Name = character.Name,
+                    Height = character.Height,
+                    Width = character.Width,
+                    Fill = new ImageBrush() { ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/soldier.png")) },
+                    Stroke = character is Enemy ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.White),
+                    StrokeThickness = 1.5,
+                    RenderTransformOrigin = new Point(0.5, 0.5)
+                }
             };
-            GameCanvas.Children.Add(characterRect);
-            Canvas.SetLeft(characterRect, character.CenterPosition.X);
-            Canvas.SetTop(characterRect, character.CenterPosition.Y);
+
+            foreach (UIElement element in uIElements)
+            {
+                GameCanvas.Children.Add(element);
+
+                Canvas.SetLeft(element, character.PositionLT.X);
+                Canvas.SetTop(element, character.PositionLT.Y);
+            }
         }
 
         private void SpawnBullet(Bullet bulletObj, Character character)
         {
-            Rectangle newBullet = new()
+            List<UIElement> uIElements = new()
             {
-                Uid = bulletObj.Guid.ToString(),
-                Tag = "Bullet",
-                Height = bulletObj.Height,
-                Width = bulletObj.Width,
-                RenderTransformOrigin = new Point(0.0, 0.0),
-                Fill = bulletObj.IsTracer ? Brushes.Gray : Brushes.Red,
-                Stroke = Brushes.LightYellow,
-                RenderTransform = (RotateTransform)(new(character.Angle))
+                new Ellipse()
+                {
+                    Uid = bulletObj.Guid.ToString(),
+                    Tag = "Bullet",
+                    Height = bulletObj.Height*10,
+                    Width = bulletObj.Width*10,
+                    RenderTransformOrigin = new Point(0.0, 0.0),
+                    Fill = Brushes.LightYellow,
+                    Opacity = 0.1,
+                    RenderTransform = (RotateTransform)(new(character.Angle))
+                },
+                new Ellipse()
+                {
+                    Uid = bulletObj.Guid.ToString(),
+                    Tag = "Bullet",
+                    Height = bulletObj.Height,
+                    Width = bulletObj.Width,
+                    RenderTransformOrigin = new Point(0.0, 0.0),
+                    Fill = bulletObj.IsTracer ? Brushes.Gray : Brushes.Red,
+                    Stroke = Brushes.LightYellow,
+                    RenderTransform = (RotateTransform)(new(character.Angle))
+                }
             };
-            Canvas.SetLeft(newBullet, character.CenterPosition.X);
-            Canvas.SetTop(newBullet, character.CenterPosition.Y);
 
-            GameCanvas.Children.Add(newBullet);
+            foreach (UIElement element in uIElements)
+            {
+                GameCanvas.Children.Add(element);
+                Canvas.SetLeft(element, character.CenterPosition.X);
+                Canvas.SetTop(element, character.CenterPosition.Y);
+            }
         }
 
         private void DrawObjects()

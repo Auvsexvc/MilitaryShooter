@@ -35,12 +35,6 @@
                            TextAlignment="Center"
                            Foreground="White"
                            Margin="48" />
-                <TextBlock x:Name="FinalScoreText"
-                           Text="Score: "
-                           FontSize="36"
-                           Foreground="White"
-                           TextAlignment="Center"
-                           Margin="36" />
                 <Button Content="Continue"
                         Foreground="White"
                         Background="DimGray"

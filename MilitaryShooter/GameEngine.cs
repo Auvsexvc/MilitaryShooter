@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MilitaryShooter
 {
@@ -68,7 +69,7 @@ namespace MilitaryShooter
                 if (obj is Enemy enemy)
                 {
                     enemy.LocksTarget(Player);
-                    //enemy.ShootAtTarget(Player);
+                    enemy.ShootAtTarget(Player);
                 }
 
                 if (obj.IsOutOfBounds())
