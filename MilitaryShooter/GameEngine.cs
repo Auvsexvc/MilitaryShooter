@@ -7,6 +7,9 @@ namespace MilitaryShooter
 {
     internal class GameEngine
     {
+        private const int maxDelay = 16;
+        private const int minDelay = 16;
+
         private readonly List<GameObject> gameObjectsToClean = new();
         public static double ResX { get; private set; }
         public static double ResY { get; private set; }
@@ -28,6 +31,12 @@ namespace MilitaryShooter
 
         public event Action? GameRestarted;
 
+        public event Action? DrawObjects;
+
+        public event Action? DrawLinesOfFire;
+
+        public event Action? UpdateLabels;
+
         public GameEngine(double resX, double resY)
         {
             GameObject.OnCreate += OnGameObjectCreate;
@@ -37,8 +46,23 @@ namespace MilitaryShooter
             EnemyQueue = new EnemyQueue(Player);
             CurrentEnemy = EnemyQueue.Clones(0);
 
-            SpawnBullets();
-            SpawnCharacters();
+            //SpawnCharacters();
+        }
+
+        public async Task GameLoop()
+        {
+            while (!Paused)
+            {
+                int delay = Math.Max(minDelay, maxDelay);
+                await Task.Delay(delay);
+
+                DrawObjects!();
+
+                UpdateObjects();
+                DrawLinesOfFire!();
+                UpdateLabels!();
+                CleanGameObjects();
+            }
         }
 
         public void UpdateObjects()
@@ -60,11 +84,11 @@ namespace MilitaryShooter
                 }
                 else if (obj is Enemy enemy)
                 {
-                    enemy.MoveToPoint(Player.Aim);
                     enemy.LocksTarget(Player);
+                    enemy.ShorteningDistanceToTarget(Player);
                     enemy.ShootAtTarget(Player);
                 }
-                else if(obj is Bullet bullet)
+                else if (obj is Bullet bullet)
                 {
                     GameObject? collider = bullet.CheckCollisions(GameObjects, Bullets);
                     if (collider != null && collider != bullet.Shooter)
@@ -107,14 +131,7 @@ namespace MilitaryShooter
         private void Spawn(Character character)
         {
             TriggerSpawnModel?.Invoke(character);
-        }
-
-        private void SpawnBullets()
-        {
-            foreach (Character character in Characters)
-            {
-                character.FireBullet += SpawnBulletFiredBy;
-            }
+            character.FireBullet += SpawnBulletFiredBy;
         }
 
         private void SpawnBulletFiredBy(Character character)

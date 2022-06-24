@@ -48,7 +48,7 @@ namespace MilitaryShooter
                 if (this.IntersectsWith(obj))
                 {
                     return obj;
-                };
+                }
             }
             return null;
         }

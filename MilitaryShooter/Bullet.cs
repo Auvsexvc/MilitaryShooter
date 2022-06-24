@@ -2,7 +2,7 @@
 {
     internal class Bullet : Projectile
     {
-        private const double DefaultSpeed = 70;
+        private const double DefaultSpeed = 50;
         private const double DefaultDamage = 25;
         private const double DefaultWidth = 10;
         private const double DefaultHeight = 2;
@@ -22,7 +22,7 @@
         {
             Speed = DefaultSpeed + (GameStatic.rand.NextDouble() * 10);
             Damage = DefaultDamage;
-            Width = DefaultWidth + GameStatic.rand.Next(0,11);
+            Width = DefaultWidth + GameStatic.rand.Next(0, 11);
             Height = DefaultHeight;
             Trail = (DefaultTrailW, DefaultTrailH);
         }
@@ -31,7 +31,7 @@
         {
             IsTracer = true;
             Trail = (Trail.W * 6, Trail.H * 2);
-            Speed *= (1-0.25);
+            Speed *= (1 - 0.25);
         }
     }
 }

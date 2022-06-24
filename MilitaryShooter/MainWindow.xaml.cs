@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -18,10 +17,8 @@ namespace MilitaryShooter
     /// </summary>
     public partial class MainWindow : Window
     {
-        private GameEngine gameEngine;
+        private GameEngine? gameEngine;
         private readonly List<Shape> shapesToRemove = new();
-        private const int maxDelay = 16;
-        private const int minDelay = 16;
 
         private readonly DoubleAnimation fadeOutAnimation = new()
         {
@@ -40,11 +37,9 @@ namespace MilitaryShooter
         public MainWindow()
         {
             InitializeComponent();
-            gameEngine = new(GameCanvas.Width, GameCanvas.Height);
-            SetUpGame();
         }
 
-        private void SetUpGame()
+        private async void SetUpGame()
         {
             GameCanvas.Children.Clear();
             //GameCanvas.Background = new ImageBrush()
@@ -55,12 +50,16 @@ namespace MilitaryShooter
             GameCanvas.Background = new SolidColorBrush(Color.FromArgb(255, 28, 28, 28));
             GameCanvas.Focus();
             gameEngine = new(GameCanvas.Width, GameCanvas.Height);
+            gameEngine.DrawObjects += DrawObjects;
+            gameEngine.DrawLinesOfFire += DrawLinesOfFire;
+            gameEngine.UpdateLabels += UpdateLabels;
             gameEngine.GameRestarted += OnGameRestarted;
             gameEngine.TriggerSpawnBulletModel += SpawnBullet;
             gameEngine.TriggerSpawnModel += SpawnCharacter;
             gameEngine.TriggerRemoveModel += RemoveModel;
             gameEngine.SpawnCharacters();
             SpawnLabels();
+            await gameEngine.GameLoop();
         }
 
         private void SpawnLabels()
@@ -79,7 +78,7 @@ namespace MilitaryShooter
             Label healthLabel = new()
             {
                 Name = "Health",
-                Content = $"Health: {gameEngine.Player.Health}",
+                Content = $"Health: {gameEngine!.Player.Health}",
                 Tag = "Player",
                 FontSize = 18,
                 FontWeight = FontWeights.Bold,
@@ -90,32 +89,16 @@ namespace MilitaryShooter
             Canvas.SetRight(healthLabel, 0);
         }
 
-        private async void GameCanvas_Loaded(object sender, RoutedEventArgs e)
+        private async void GameWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            await GameLoop();
-        }
-
-        private async Task GameLoop()
-        {
-            while (!gameEngine.Paused)
-            {
-                int delay = Math.Max(minDelay, maxDelay);
-                await Task.Delay(delay);
-
-                DrawObjects();
-                gameEngine.UpdateObjects();
-
-                DrawLinesOfFire();
-                UpdateLabels();
-                gameEngine.CleanGameObjects();
-            }
+            await GameMenuOpen();
         }
 
         private void UpdateLabels()
         {
             foreach (Label label in GameCanvas.Children.OfType<Label>())
             {
-                label.Content = $"{label.Name}: {gameEngine.Player.Health}";
+                label.Content = $"{label.Name}: {gameEngine!.Player.Health}";
             }
         }
 
@@ -164,7 +147,7 @@ namespace MilitaryShooter
         private void SpawnBullet(Bullet bulletObj, Character character)
         {
             (double Width, double Height) trailSize = (bulletObj.Trail.W, bulletObj.Trail.H);
-            TranslateTransform trailMoveTransform = new(bulletObj.Width - trailSize.Width, bulletObj.Height/2 - trailSize.Height/2);
+            TranslateTransform trailMoveTransform = new(bulletObj.Width - trailSize.Width, (bulletObj.Height / 2) - (trailSize.Height / 2));
             TranslateTransform moveTransform = new(bulletObj.Width / 2, bulletObj.Height / 2);
             RotateTransform rotateTransform = new(character.Angle);
             List<UIElement> uIElements = new()
@@ -215,7 +198,7 @@ namespace MilitaryShooter
         {
             foreach (UIElement element in GameCanvas.Children.OfType<UIElement>())
             {
-                GameObject? obj = gameEngine.GameObjects.Find(b => b.Guid.ToString() == element.Uid);
+                GameObject? obj = gameEngine!.GameObjects.Find(b => b.Guid.ToString() == element.Uid);
                 if (obj != null)
                 {
                     if (obj is Character character)
@@ -235,7 +218,7 @@ namespace MilitaryShooter
 
         private void DrawLinesOfFire()
         {
-            foreach (Character character in gameEngine.Characters.Where(c => c is Player))
+            foreach (Character character in gameEngine!.Characters.Where(c => c is Player))
             {
                 Line lineOfFire = new()
                 {
@@ -260,35 +243,42 @@ namespace MilitaryShooter
 
         private void GameCanvas_KeyDown(object sender, KeyEventArgs e)
         {
-            GameControl.KeyDown(this, gameEngine.Player, e);
+            GameControl.KeyDown(this, gameEngine!.Player, e);
         }
 
         private void GameCanvas_KeyUp(object sender, KeyEventArgs e)
         {
-            GameControl.KeyUp(gameEngine.Player, e);
+            GameControl.KeyUp(gameEngine!.Player, e);
         }
 
         private void GameCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            gameEngine.Player.Shoot();
+            gameEngine!.Player.Shoot();
         }
 
         private void GameCanvas_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             Point position = e.GetPosition((IInputElement)sender);
-            gameEngine.Player.SetPath((position.X, position.Y));
+            gameEngine!.Player.SetPath((position.X, position.Y));
         }
 
         private void GameCanvas_MouseMoveHandler(object sender, MouseEventArgs e)
         {
             Point position = e.GetPosition((IInputElement)sender);
-            gameEngine.Player.SetAim((position.X, position.Y));
+            if (gameEngine != null)
+                gameEngine.Player.SetAim((position.X, position.Y));
         }
 
-        private async void GameMenu_Restart_Button(object sender, RoutedEventArgs e)
+        private void GameMenu_Restart_Button(object sender, RoutedEventArgs e)
         {
-            gameEngine.Reset();
-            await GameLoop();
+            if (gameEngine != null)
+            {
+                gameEngine.Reset();
+            }
+            else
+            {
+                OnGameRestarted();
+            }
         }
 
         private void GameMenu_Quit_Button(object sender, RoutedEventArgs e)
@@ -310,16 +300,30 @@ namespace MilitaryShooter
 
         public async Task GameMenuOpen()
         {
-            gameEngine.Pause();
+            if (gameEngine != null)
+            {
+                gameEngine.Pause();
+                Restart_Button.Content = "Restart";
+                Continue_Button.IsEnabled = true;
+                Continue_Button.Background = new SolidColorBrush(Color.FromArgb(123, 225, 219, 158));
+            }
+            else
+            {
+                Restart_Button.Content = "New";
+                Continue_Button.IsEnabled = false;
+            }
             await TransitionToGameMenu();
         }
 
         public async Task GameMenuClose()
         {
             await TransitionToGameCanvas();
-            gameEngine.UnPause();
-            GameCanvas.Focus();
-            await GameLoop();
+            if (gameEngine != null)
+            {
+                gameEngine.UnPause();
+                GameCanvas.Focus();
+                await gameEngine.GameLoop();
+            }
         }
 
         private async Task TransitionToGameCanvas()
@@ -349,15 +353,16 @@ namespace MilitaryShooter
 
         private async void GameMenu_Continue_Button(object sender, RoutedEventArgs e)
         {
-            await GameMenuClose();
+            if(gameEngine != null)
+            {
+                await GameMenuClose();
+            }
         }
 
         private async void OnGameRestarted()
         {
             await TransitionToGameCanvas();
-            gameEngine = new(GameCanvas.Width, GameCanvas.Height);
             SetUpGame();
-            await GameLoop();
         }
     }
 }

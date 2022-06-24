@@ -48,7 +48,7 @@ namespace MilitaryShooter
 
         public void ShootAtTarget(Character target)
         {
-            Aim = target.CenterPosition;
+            LocksTarget(target);
             if (!Stopwatch.IsRunning)
             {
                 Stopwatch.Start();
@@ -56,8 +56,11 @@ namespace MilitaryShooter
 
             if (Stopwatch.ElapsedMilliseconds % DefaultRateOfFire == 0 && !shotFired)
             {
-                Shoot();
-                shotFired = true;
+                if (IsTargetInTheRangeOfView(target))
+                {
+                    Shoot();
+                    shotFired = true;
+                }
             }
             if (Stopwatch.ElapsedMilliseconds > DefaultRateOfFire)
             {
@@ -65,7 +68,16 @@ namespace MilitaryShooter
                 Stopwatch.Reset();
                 shotFired = false;
             }
+        }
 
+        public void ShorteningDistanceToTarget(Character target)
+        {
+            LocksTarget(target);
+            if (!IsTargetInTheRangeOfView(target))
+            {
+                (double X, double Y) maxRangePointTowardTarget = MaxRangePointTowardTarget(this.CenterPosition, target.CenterPosition, RangeOfView);
+                MoveToPoint(maxRangePointTowardTarget);
+            }
         }
     }
 }

@@ -10,6 +10,7 @@ namespace MilitaryShooter
         private const double DefaultSpeed = 2.0;
         private const double DefaultCharacterSide = 32;
         protected const int DefaultRateOfFire = 1000;
+        protected const double DefaultRangeOfView = 500;
 
         public (double X, double Y) Aim { get; set; }
 
@@ -37,6 +38,7 @@ namespace MilitaryShooter
         public override double Speed { get; protected set; }
         public override double Width { get; protected set; }
         public override double Height { get; protected set; }
+        public double RangeOfView { get; }
         public bool MoveLeft { get; set; }
         public bool MoveRight { get; set; }
         public bool MoveUp { get; set; }
@@ -53,6 +55,7 @@ namespace MilitaryShooter
             Width = DefaultCharacterSide;
             Height = DefaultCharacterSide;
             RateOfFire = DefaultRateOfFire;
+            RangeOfView = DefaultRangeOfView;
         }
 
         public void SetAim((double X, double Y) aim)
@@ -62,6 +65,7 @@ namespace MilitaryShooter
 
         public void Shoot()
         {
+            
             FireBullet?.Invoke(this);
             BulletsFired++;
         }
@@ -72,6 +76,18 @@ namespace MilitaryShooter
             double a = target.X - source.X;
             double b = target.Y - source.Y;
             double cPrim = Speed;
+            double aPrim = (a * cPrim) / c;
+            double bPrim = (b * cPrim) / c;
+
+            return (PositionLT.X + aPrim, PositionLT.Y + bPrim);
+        }
+
+        protected (double X, double Y) MaxRangePointTowardTarget((double X, double Y) source, (double X, double Y) target, double distance)
+        {
+            double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
+            double a = target.X - source.X;
+            double b = target.Y - source.Y;
+            double cPrim = distance;
             double aPrim = (a * cPrim) / c;
             double bPrim = (b * cPrim) / c;
 
@@ -189,6 +205,17 @@ namespace MilitaryShooter
             PositionLT = d;
         }
 
+        public void MoveToPoint(Character target)
+        {
+            (double x, double y) d = Displacement(PositionLT, target.CenterPosition);
+
+            if (IsMoveOutOfBounds(d))
+            {
+                return;
+            }
+            PositionLT = d;
+        }
+
         public void SetPath((double, double) p)
         {
             PointsToMoveTo.Clear();
@@ -197,5 +224,10 @@ namespace MilitaryShooter
 
         public bool IsMoveOutOfBounds((double X, double Y) valueTuple) =>
             valueTuple.X < 0 || valueTuple.X > GameEngine.ResX - Width || (valueTuple.Y < 0 || valueTuple.Y > GameEngine.ResY - Height);
+
+        public bool IsTargetInTheRangeOfView(GameObject gameObject)
+        {
+            return Math.Sqrt(Math.Pow(gameObject.CenterPosition.X - CenterPosition.X, 2) + Math.Pow(gameObject.CenterPosition.Y - CenterPosition.Y, 2)) <= RangeOfView;
+        }
     }
 }

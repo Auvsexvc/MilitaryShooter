@@ -3,26 +3,24 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:MilitaryShooter"
         mc:Ignorable="d"
-        Title="MainWindow">
+        Title="MainWindow" Loaded="GameWindow_Loaded">
     <Grid>
         <Viewbox Stretch="Fill">
-            <Canvas Name="GameCanvas" 
-                    Background="Black" 
-                    Focusable="True" 
-                    Height="900" 
-                    Width="1600" 
-                    MouseMove="GameCanvas_MouseMoveHandler" 
-                    MouseLeftButtonDown="GameCanvas_MouseLeftButtonDown" 
+            <Canvas Name="GameCanvas"
+                    Background="Black"
+                    Focusable="True"
+                    Height="900"
+                    Width="1600"
+                    MouseMove="GameCanvas_MouseMoveHandler"
+                    MouseLeftButtonDown="GameCanvas_MouseLeftButtonDown"
                     MouseRightButtonDown="GameCanvas_MouseRightButtonDown"
-                    KeyDown="GameCanvas_KeyDown" 
-                    KeyUp="GameCanvas_KeyUp"
-                    Loaded="GameCanvas_Loaded" >
+                    KeyDown="GameCanvas_KeyDown"
+                    KeyUp="GameCanvas_KeyUp">
             </Canvas>
         </Viewbox>
         <Grid Name="GameMenu"
-              Focusable="True" 
+              Focusable="True"
               Background="#CC000000"
               Grid.RowSpan="2"
               Grid.ColumnSpan="3"
@@ -30,12 +28,13 @@
               Visibility="Hidden">
             <StackPanel HorizontalAlignment="Center"
                         VerticalAlignment="Center">
-                <TextBlock Text="Game Over"
+                <TextBlock Text="Game Menu"
                            FontSize="48"
                            TextAlignment="Center"
                            Foreground="White"
                            Margin="48" />
-                <Button Content="Continue"
+                <Button Name="Continue_Button"
+                        Content="Continue"
                         Foreground="White"
                         Background="DimGray"
                         Margin="0,20,0,0"
@@ -43,7 +42,8 @@
                         FontSize="24"
                         MaxWidth="200"
                         Click="GameMenu_Continue_Button" />
-                <Button Content="Restart"
+                <Button Name="Restart_Button"
+                        Content="Restart"
                         Foreground="White"
                         Background="DimGray"
                         Margin="0,20,0,0"
@@ -51,7 +51,8 @@
                         FontSize="24"
                         MaxWidth="200"
                         Click="GameMenu_Restart_Button" />
-                <Button Content="Quit"
+                <Button Name="Quit_Button"
+                        Content="Quit"
                         Foreground="White"
                         Background="DimGray"
                         Margin="0,20,0,0"
