@@ -39,6 +39,9 @@ namespace MilitaryShooter
                         _ = window.GameMenuClose();
                     }
                     break;
+                case Key.Space:
+                    _ = window.GamePause();
+                    break;
             }
         }
 

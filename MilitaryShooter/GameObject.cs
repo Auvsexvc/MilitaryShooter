@@ -23,6 +23,8 @@ namespace MilitaryShooter
 
         public (double X, double Y) CenterPosition => (PositionLT.X + (Width / 2), PositionLT.Y + (Height / 2));
 
+        
+
         public static event Action<GameObject>? OnCreate;
 
         public event PropertyChangedEventHandler? PropertyChanged;

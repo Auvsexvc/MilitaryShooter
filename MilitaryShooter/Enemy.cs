@@ -44,6 +44,7 @@ namespace MilitaryShooter
         public void LocksTarget(Character target)
         {
             Aim = target.CenterPosition;
+            Rotate();
         }
 
         public void ShootAtTarget(Character target)

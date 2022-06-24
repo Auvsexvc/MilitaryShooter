@@ -8,7 +8,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 
 namespace MilitaryShooter
@@ -45,8 +44,7 @@ namespace MilitaryShooter
             GameCanvas.Children.Clear();
             //GameCanvas.Background = new ImageBrush()
             //{
-            //    ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/agrass.jpg")),
-            //    Opacity = 2,
+            //    ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/grass.jpg")),
             //};
             GameCanvas.Background = new SolidColorBrush(Color.FromArgb(255, 28, 28, 28));
             GameCanvas.Focus();
@@ -206,7 +204,7 @@ namespace MilitaryShooter
                     {
                         TransformGroup transformGroup = new();
                         TranslateTransform moveTransform = new(character.Width / 2, character.Height / 2);
-                        RotateTransform rotateTransform = new(character.Angle);
+                        RotateTransform rotateTransform = character is Player ? new(character.CurrentAngle) : new(character.Angle);
                         //transformGroup.Children.Add(moveTransform);
                         transformGroup.Children.Add(rotateTransform);
                         element.RenderTransform = transformGroup;
@@ -268,8 +266,8 @@ namespace MilitaryShooter
             Point position = e.GetPosition((IInputElement)sender);
             if (gameEngine != null)
             {
-                gameEngine.Player.CurrentAngle = gameEngine.Player.CurrentAngle;
                 gameEngine.Player.SetAim((position.X, position.Y));
+                gameEngine.Player.Rotate();
             }
         }
 
@@ -321,7 +319,7 @@ namespace MilitaryShooter
 
         public async Task GameMenuClose()
         {
-            await TransitionToGameCanvas();
+            await TransitionToGameCanvas(GameMenu);
             if (gameEngine != null)
             {
                 gameEngine.UnPause();
@@ -330,10 +328,39 @@ namespace MilitaryShooter
             }
         }
 
-        private async Task TransitionToGameCanvas()
+        public async Task GamePause()
         {
-            await FadeOut(GameMenu);
-            GameMenu.Visibility = Visibility.Hidden;
+            if (gameEngine != null)
+            {
+                if (gameEngine.Paused)
+                {
+                    //GameCanvas.Opacity = 1;
+                    //GameCanvas.OpacityMask = null;
+                    await TransitionToGameCanvas(GamePauseMask);
+                    GameCanvas.Focus();
+                    gameEngine.UnPause();
+                    await gameEngine.GameLoop();
+                }
+                else
+                {
+                    //GameCanvas.Opacity = 0.8;
+                    //GameCanvas.OpacityMask = new SolidColorBrush(Color.FromArgb(251, 0, 0, 0));
+                    GamePauseMask.Focus();
+                    gameEngine.Pause();
+                    await TransitionTo(GamePauseMask);
+                }
+            }
+        }
+
+        private async Task TransitionTo(UIElement element)
+        {
+            await FadeIn(element);
+        }
+
+        private async Task TransitionToGameCanvas(UIElement element)
+        {
+            await FadeOut(element);
+            element.Visibility = Visibility.Hidden;
         }
 
         private async Task TransitionToGameMenu()
@@ -357,7 +384,7 @@ namespace MilitaryShooter
 
         private async void GameMenu_Continue_Button(object sender, RoutedEventArgs e)
         {
-            if(gameEngine != null)
+            if (gameEngine != null)
             {
                 await GameMenuClose();
             }
@@ -365,7 +392,7 @@ namespace MilitaryShooter
 
         private async void OnGameRestarted()
         {
-            await TransitionToGameCanvas();
+            await TransitionToGameCanvas(GameMenu);
             SetUpGame();
         }
     }

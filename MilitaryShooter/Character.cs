@@ -11,9 +11,11 @@ namespace MilitaryShooter
         private const double DefaultCharacterSide = 32;
         protected const int DefaultRateOfFire = 1000;
         protected const double DefaultRangeOfView = 500;
+        protected const double DefaultRotationMultiplier = 1.5;
 
         public (double X, double Y) Aim { get; set; }
         public double CurrentAngle { get; set; }
+
         public double Angle
         {
             get
@@ -38,6 +40,9 @@ namespace MilitaryShooter
         public override double Speed { get; protected set; }
         public override double Width { get; protected set; }
         public override double Height { get; protected set; }
+        public double RotationSpeed => Speed * DefaultRotationMultiplier;
+        public bool RotationCheck { get; set; }
+        public bool IsRotated => (Angle - RotationSpeed) > CurrentAngle && (Angle + RotationSpeed) < CurrentAngle;
         public double RangeOfView { get; }
         public bool MoveLeft { get; set; }
         public bool MoveRight { get; set; }
@@ -65,13 +70,61 @@ namespace MilitaryShooter
 
         public void Shoot()
         {
-            FireBullet?.Invoke(this);
-            BulletsFired++;
+            if (RotationCheck)
+            {
+                FireBullet?.Invoke(this);
+                BulletsFired++;
+            }
         }
 
-        public void Rotate((double X, double Y) target)
+        public void Rotate()
         {
-            //if(Angle <)
+            CurrentAngle %= 360;
+            if ((Angle - RotationSpeed) > CurrentAngle)
+            {
+                if (Angle - CurrentAngle < 180)
+                {
+                    CurrentAngle += RotationSpeed;
+                    if (CurrentAngle >= 360)
+                    {
+                        CurrentAngle = 360 - CurrentAngle;
+                    }
+                }
+                else
+                {
+                    CurrentAngle -= RotationSpeed;
+                    if (CurrentAngle < 0)
+                    {
+                        CurrentAngle = 360 + CurrentAngle;
+                    }
+                }
+                RotationCheck = false;
+            }
+            else if ((Angle + RotationSpeed) < CurrentAngle)
+            {
+                if (CurrentAngle - Angle < 180)
+                {
+                    CurrentAngle -= RotationSpeed;
+                    if (CurrentAngle < 0)
+                    {
+                        CurrentAngle = 360 + CurrentAngle;
+                    }
+                }
+                else
+                {
+                    CurrentAngle += RotationSpeed;
+                    if (CurrentAngle >= 360)
+                    {
+                        CurrentAngle = 360 - CurrentAngle;
+                    }
+                }
+                RotationCheck = false;
+            }
+            else
+            {
+                CurrentAngle = Angle;
+                RotationCheck = true;
+            }
         }
 
         protected override (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)
