@@ -43,7 +43,7 @@ namespace MilitaryShooter
             ResX = resX;
             ResY = resY;
             Player = new Player();
-            EnemyQueue = new EnemyQueue(Player);
+            EnemyQueue = new EnemyQueue();
             CurrentEnemy = EnemyQueue.Clones(0);
 
             //SpawnCharacters();

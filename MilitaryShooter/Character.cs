@@ -13,7 +13,7 @@ namespace MilitaryShooter
         protected const double DefaultRangeOfView = 500;
 
         public (double X, double Y) Aim { get; set; }
-
+        public double CurrentAngle { get; set; }
         public double Angle
         {
             get
@@ -65,9 +65,13 @@ namespace MilitaryShooter
 
         public void Shoot()
         {
-            
             FireBullet?.Invoke(this);
             BulletsFired++;
+        }
+
+        public void Rotate((double X, double Y) target)
+        {
+            //if(Angle <)
         }
 
         protected override (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)

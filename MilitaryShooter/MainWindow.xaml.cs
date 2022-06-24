@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 
 namespace MilitaryShooter
@@ -266,7 +267,10 @@ namespace MilitaryShooter
         {
             Point position = e.GetPosition((IInputElement)sender);
             if (gameEngine != null)
+            {
+                gameEngine.Player.CurrentAngle = gameEngine.Player.CurrentAngle;
                 gameEngine.Player.SetAim((position.X, position.Y));
+            }
         }
 
         private void GameMenu_Restart_Button(object sender, RoutedEventArgs e)
