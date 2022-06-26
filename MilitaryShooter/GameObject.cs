@@ -9,27 +9,21 @@ namespace MilitaryShooter
 {
     internal abstract class GameObject : INotifyPropertyChanged
     {
-        private const int margin = 64;
+        private const int Margin = 64;
 
         public Guid Guid { get; protected set; }
-        public string? Name { get; set; }
-        public abstract double Speed { get; protected set; }
-        public abstract double Width { get; protected set; }
-        public abstract double Height { get; protected set; }
-
-        public int Health { get; set; }
-
+        public string? Name { get; protected set; }
+        public double Speed { get; protected set; }
+        public double Width { get; protected set; }
+        public double Height { get; protected set; }
+        public virtual double Angle { get; protected set; }
+        public int Health { get; protected set; }
         public (double X, double Y) PositionLT { get; set; }
-
         public (double X, double Y) CenterPosition => (PositionLT.X + (Width / 2), PositionLT.Y + (Height / 2));
-
-        
 
         public static event Action<GameObject>? OnCreate;
 
         public event PropertyChangedEventHandler? PropertyChanged;
-
-        public abstract void Move();
 
         public abstract void MoveToPoint();
 
@@ -55,7 +49,7 @@ namespace MilitaryShooter
             return null;
         }
 
-        public bool IsOutOfBounds() => PositionLT.X < -margin || PositionLT.X > GameEngine.ResX + margin || PositionLT.Y < -margin || PositionLT.Y > GameEngine.ResY + margin;
+        public bool IsOutOfBounds() => PositionLT.X < -Margin || PositionLT.X > GameEngine.ResX + Margin || PositionLT.Y < -Margin || PositionLT.Y > GameEngine.ResY + Margin;
 
         protected GameObject()
         {
@@ -68,6 +62,11 @@ namespace MilitaryShooter
         protected virtual void OnPropertyChanged([CallerMemberName] string? name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
+        public void TakeDamage(int damage)
+        {
+            Health -= damage;
         }
     }
 }

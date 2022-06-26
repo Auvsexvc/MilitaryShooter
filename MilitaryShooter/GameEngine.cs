@@ -7,18 +7,19 @@ namespace MilitaryShooter
 {
     internal class GameEngine
     {
-        private const int maxDelay = 16;
-        private const int minDelay = 16;
+        private const int MaxDelay = 16;
+        private const int MinDelay = 16;
 
-        private readonly List<GameObject> gameObjectsToClean = new();
-        public static double ResX { get; private set; }
-        public static double ResY { get; private set; }
+        private readonly List<GameObject> _gameObjectsToClean;
+        public static double ResX => GameStatic.resolution.x;
+        public static double ResY => GameStatic.resolution.y;
         public Player Player { get; set; }
         public EnemyQueue EnemyQueue { get; }
         public Enemy CurrentEnemy { get; }
-        public List<GameObject> GameObjects { get; } = new List<GameObject>();
+        public List<GameObject> GameObjects { get; }
         public List<Character> Characters => GameObjects.OfType<Character>().ToList();
         public List<Bullet> Bullets => GameObjects.OfType<Bullet>().ToList();
+        public bool IsGameStarted { get; }
         public bool Paused { get; set; }
 
         public event Action<Bullet, Character>? TriggerSpawnBulletModel;
@@ -37,27 +38,34 @@ namespace MilitaryShooter
 
         public event Action? UpdateLabels;
 
-        public GameEngine(double resX, double resY)
+        public GameEngine(bool isGameStarted)
         {
-            GameObject.OnCreate += OnGameObjectCreate;
-            ResX = resX;
-            ResY = resY;
+            _gameObjectsToClean = new List<GameObject>();
+            GameObjects = new List<GameObject>();
+            if (!isGameStarted)
+            {
+                IsGameStarted = false;
+                EnemyQueue = new EnemyQueue();
+                CurrentEnemy = new Enemy();
+            }
+            else
+            {
+                GameObject.OnCreate += OnGameObjectCreate;
+                EnemyQueue = new EnemyQueue();
+                CurrentEnemy = EnemyQueue.Clones(0);
+                IsGameStarted = true;
+            }
             Player = new Player();
-            EnemyQueue = new EnemyQueue();
-            CurrentEnemy = EnemyQueue.Clones(0);
-
-            //SpawnCharacters();
         }
 
         public async Task GameLoop()
         {
             while (!Paused)
             {
-                int delay = Math.Max(minDelay, maxDelay);
+                int delay = Math.Max(MinDelay, MaxDelay);
                 await Task.Delay(delay);
 
                 DrawObjects!();
-
                 UpdateObjects();
                 DrawLinesOfFire!();
                 UpdateLabels!();
@@ -93,7 +101,7 @@ namespace MilitaryShooter
                     GameObject? collider = bullet.CheckCollisions(GameObjects, Bullets);
                     if (collider != null && collider != bullet.Shooter)
                     {
-                        collider.Health -= 25;
+                        collider.TakeDamage(25);
                         RemoveGameObject(obj);
                     }
                     else
@@ -111,10 +119,10 @@ namespace MilitaryShooter
 
         public void CleanGameObjects()
         {
-            if (gameObjectsToClean.Count > 0)
+            if (_gameObjectsToClean.Count > 0)
             {
-                GameObjects.RemoveAll(o => gameObjectsToClean.Contains(o));
-                gameObjectsToClean.Clear();
+                GameObjects.RemoveAll(o => _gameObjectsToClean.Contains(o));
+                _gameObjectsToClean.Clear();
 
                 GC.Collect();
             }
@@ -159,7 +167,7 @@ namespace MilitaryShooter
 
         private void RemoveGameObject(GameObject gameObject)
         {
-            gameObjectsToClean.Add(gameObject);
+            _gameObjectsToClean.Add(gameObject);
             TriggerRemoveModel?.Invoke(gameObject);
         }
 

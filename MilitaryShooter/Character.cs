@@ -11,12 +11,14 @@ namespace MilitaryShooter
         private const double DefaultCharacterSide = 32;
         protected const int DefaultRateOfFire = 1000;
         protected const double DefaultRangeOfView = 500;
+        protected const double DefaultRangeOfFire = 700;
         protected const double DefaultRotationMultiplier = 1.5;
+
+        private bool _rotationCheck;
 
         public (double X, double Y) Aim { get; set; }
         public double CurrentAngle { get; set; }
-
-        public double Angle
+        public override double Angle
         {
             get
             {
@@ -33,26 +35,19 @@ namespace MilitaryShooter
                 return angle;
             }
         }
-
-        public double Radians => Math.Atan((Aim.Y - CenterPosition.Y) / (Aim.X - CenterPosition.X));
-        public List<(double X, double Y)> PointsToMoveTo { get; set; } = new();
-        public (double X, double Y) CurrentMoveToPoint => PointsToMoveTo.FirstOrDefault();
-        public override double Speed { get; protected set; }
-        public override double Width { get; protected set; }
-        public override double Height { get; protected set; }
+        public List<(double X, double Y)> PointsToMoveTo { get; set; }
+        //public (double X, double Y) CurrentMoveToPoint => PointsToMoveTo.FirstOrDefault();
         public double RotationSpeed => Speed * DefaultRotationMultiplier;
-        public bool RotationCheck { get; set; }
-        public bool IsRotated => (Angle - RotationSpeed) > CurrentAngle && (Angle + RotationSpeed) < CurrentAngle;
-        public double RangeOfView { get; }
-        public bool MoveLeft { get; set; }
-        public bool MoveRight { get; set; }
-        public bool MoveUp { get; set; }
-        public bool MoveDown { get; set; }
-        public int BulletsFired { get; set; }
-        public int RateOfFire { get; set; }
-        public Stopwatch Stopwatch { get; protected set; } = new();
+        //public (double X, double Y) MaxRange => MaxRangePointTowardTarget(CenterPosition, Aim, RangeOfView);
+        //public bool IsRotated => (Angle - RotationSpeed) > CurrentAngle && (Angle + RotationSpeed) < CurrentAngle;
+        public double RangeOfView { get; protected set; }
+        public double RangeOfFire { get; protected set; }
+        public double AimDistance => DistanceMeter(CenterPosition, Aim);
+        public int BulletsFired { get; private set; }
+        public int RateOfFire { get; }
+        public Stopwatch Stopwatch { get; }
 
-        public virtual event Action<Character>? FireBullet;
+        public event Action<Character>? FireBullet;
 
         protected Character()
         {
@@ -61,6 +56,9 @@ namespace MilitaryShooter
             Height = DefaultCharacterSide;
             RateOfFire = DefaultRateOfFire;
             RangeOfView = DefaultRangeOfView;
+            RangeOfFire = DefaultRangeOfFire;
+            PointsToMoveTo = new List<(double X, double Y)>();
+            Stopwatch = new Stopwatch();
         }
 
         public void SetAim((double X, double Y) aim)
@@ -70,7 +68,7 @@ namespace MilitaryShooter
 
         public void Shoot()
         {
-            if (RotationCheck)
+            if (_rotationCheck)
             {
                 FireBullet?.Invoke(this);
                 BulletsFired++;
@@ -98,7 +96,7 @@ namespace MilitaryShooter
                         CurrentAngle = 360 + CurrentAngle;
                     }
                 }
-                RotationCheck = false;
+                _rotationCheck = false;
             }
             else if ((Angle + RotationSpeed) < CurrentAngle)
             {
@@ -118,12 +116,12 @@ namespace MilitaryShooter
                         CurrentAngle = 360 - CurrentAngle;
                     }
                 }
-                RotationCheck = false;
+                _rotationCheck = false;
             }
             else
             {
                 CurrentAngle = Angle;
-                RotationCheck = true;
+                _rotationCheck = true;
             }
         }
 
@@ -139,7 +137,7 @@ namespace MilitaryShooter
             return (PositionLT.X + aPrim, PositionLT.Y + bPrim);
         }
 
-        protected (double X, double Y) MaxRangePointTowardTarget((double X, double Y) source, (double X, double Y) target, double distance)
+        public (double X, double Y) MaxRangePointTowardTarget((double X, double Y) source, (double X, double Y) target, double distance)
         {
             double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
             double a = target.X - source.X;
@@ -148,89 +146,10 @@ namespace MilitaryShooter
             double aPrim = (a * cPrim) / c;
             double bPrim = (b * cPrim) / c;
 
-            return (PositionLT.X + aPrim, PositionLT.Y + bPrim);
+            return (CenterPosition.X + aPrim, CenterPosition.Y + bPrim);
         }
 
-        public override void Move()
-        {
-            (double x, double y) = Displacement(PositionLT, Aim);
-            double moveAngle = 0;
-            double moveRadians = moveAngle * Math.PI / 180;
-            (double X, double Y) NewPositionLT;
-
-            if (MoveLeft)
-            {
-                moveAngle = (-90);
-                moveRadians += moveAngle * Math.PI / 180;
-            }
-            if (MoveLeft && MoveUp)
-            {
-                moveAngle = 45;
-                moveRadians += moveAngle * Math.PI / 180;
-            }
-            if (MoveLeft && MoveDown)
-            {
-                moveAngle = 135;
-                moveRadians += moveAngle * Math.PI / 180;
-            }
-            if (MoveRight)
-            {
-                moveAngle = 90;
-                moveRadians += moveAngle * Math.PI / 180;
-            }
-            if (MoveRight && MoveUp)
-            {
-                moveAngle = (-45);
-                moveRadians += moveAngle * Math.PI / 180;
-            }
-            if (MoveRight && MoveDown)
-            {
-                moveAngle = (-135);
-                moveRadians += moveAngle * Math.PI / 180;
-            }
-            if (MoveUp)
-            {
-                moveAngle = 0;
-                moveRadians += moveAngle * Math.PI / 180;
-            }
-            if (MoveDown)
-            {
-                moveAngle = 180;
-                moveRadians += moveAngle * Math.PI / 180;
-            }
-            if (!MoveDown && !MoveUp && !MoveLeft && !MoveRight)
-            {
-                return;
-            }
-
-            NewPositionLT = (((x - PositionLT.X) * Math.Cos(moveRadians)) - ((y - PositionLT.Y) * Math.Sin(moveRadians)), ((x - PositionLT.X) * Math.Sin(moveRadians)) + ((y - PositionLT.Y) * Math.Cos(moveRadians)));
-            if (IsMoveOutOfBounds((PositionLT.X + NewPositionLT.X, PositionLT.Y + NewPositionLT.Y)))
-            {
-                return;
-            }
-
-            PositionLT = (PositionLT.X + NewPositionLT.X, PositionLT.Y + NewPositionLT.Y);
-        }
-
-        public void AltMove()
-        {
-            if (MoveLeft && PositionLT.X > 0)
-            {
-                PositionLT = (PositionLT.X - Speed, PositionLT.Y);
-            }
-            if (MoveRight && PositionLT.X < GameEngine.ResX - Width)
-            {
-                PositionLT = (PositionLT.X + Speed, PositionLT.Y);
-            }
-            if (MoveUp && PositionLT.Y > 0)
-            {
-                PositionLT = (PositionLT.X, PositionLT.Y - Speed);
-            }
-            if (MoveDown && PositionLT.Y < GameEngine.ResY - Height)
-            {
-                PositionLT = (PositionLT.X, PositionLT.Y + Speed);
-            }
-        }
+        protected static double DistanceMeter((double X, double Y) source, (double X, double Y) target) => Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
 
         public override void MoveToPoint()
         {
@@ -285,6 +204,11 @@ namespace MilitaryShooter
         public bool IsTargetInTheRangeOfView(GameObject gameObject)
         {
             return Math.Sqrt(Math.Pow(gameObject.CenterPosition.X - CenterPosition.X, 2) + Math.Pow(gameObject.CenterPosition.Y - CenterPosition.Y, 2)) <= RangeOfView;
+        }
+
+        public bool IsTargetInTheRangeOfFire(GameObject gameObject)
+        {
+            return Math.Sqrt(Math.Pow(gameObject.CenterPosition.X - CenterPosition.X, 2) + Math.Pow(gameObject.CenterPosition.Y - CenterPosition.Y, 2)) <= RangeOfFire;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MilitaryShooter.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,7 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
 namespace MilitaryShooter
@@ -17,26 +17,29 @@ namespace MilitaryShooter
     /// </summary>
     public partial class MainWindow : Window
     {
-        private GameEngine? gameEngine;
-        private readonly List<Shape> shapesToRemove = new();
-
-        private readonly DoubleAnimation fadeOutAnimation = new()
-        {
-            Duration = TimeSpan.FromMilliseconds(100),
-            From = 1,
-            To = 0
-        };
-
-        private readonly DoubleAnimation fadeInAnimation = new()
-        {
-            Duration = TimeSpan.FromMilliseconds(100),
-            From = 0,
-            To = 1
-        };
+        private GameEngine _gameEngine;
+        private readonly List<Shape> _shapesToRemove;
+        private readonly DoubleAnimation _fadeOutAnimation;
+        private readonly DoubleAnimation _fadeInAnimation;
 
         public MainWindow()
         {
             InitializeComponent();
+            _shapesToRemove = new List<Shape>();
+            _fadeOutAnimation = new DoubleAnimation()
+            {
+                Duration = TimeSpan.FromMilliseconds(100),
+                From = 1,
+                To = 0
+            };
+            _fadeInAnimation = new()
+            {
+                Duration = TimeSpan.FromMilliseconds(100),
+                From = 0,
+                To = 1
+            };
+            GameStatic.resolution = (GameCanvas.Width, GameCanvas.Height);
+            _gameEngine = new GameEngine(false);
         }
 
         private async void SetUpGame()
@@ -48,17 +51,17 @@ namespace MilitaryShooter
             //};
             GameCanvas.Background = new SolidColorBrush(Color.FromArgb(255, 28, 28, 28));
             GameCanvas.Focus();
-            gameEngine = new(GameCanvas.Width, GameCanvas.Height);
-            gameEngine.DrawObjects += DrawObjects;
-            gameEngine.DrawLinesOfFire += DrawLinesOfFire;
-            gameEngine.UpdateLabels += UpdateLabels;
-            gameEngine.GameRestarted += OnGameRestarted;
-            gameEngine.TriggerSpawnBulletModel += SpawnBullet;
-            gameEngine.TriggerSpawnModel += SpawnCharacter;
-            gameEngine.TriggerRemoveModel += RemoveModel;
-            gameEngine.SpawnCharacters();
+            _gameEngine = new GameEngine(true);
+            _gameEngine.DrawObjects += DrawObjects;
+            _gameEngine.DrawLinesOfFire += DrawLinesOfFire;
+            _gameEngine.UpdateLabels += UpdateLabels;
+            _gameEngine.GameRestarted += OnGameRestarted;
+            _gameEngine.TriggerSpawnBulletModel += SpawnBullet;
+            _gameEngine.TriggerSpawnModel += SpawnGameObject;
+            _gameEngine.TriggerRemoveModel += RemoveModel;
+            _gameEngine.SpawnCharacters();
             SpawnLabels();
-            await gameEngine.GameLoop();
+            await _gameEngine.GameLoop();
         }
 
         private void SpawnLabels()
@@ -77,7 +80,7 @@ namespace MilitaryShooter
             Label healthLabel = new()
             {
                 Name = "Health",
-                Content = $"Health: {gameEngine!.Player.Health}",
+                Content = $"Health: {_gameEngine!.Player.Health}",
                 Tag = "Player",
                 FontSize = 18,
                 FontWeight = FontWeights.Bold,
@@ -97,185 +100,129 @@ namespace MilitaryShooter
         {
             foreach (Label label in GameCanvas.Children.OfType<Label>())
             {
-                label.Content = $"{label.Name}: {gameEngine!.Player.Health}";
+                label.Content = $"{label.Name}: {_gameEngine!.Player.Health}";
             }
         }
 
-        private void SpawnCharacter(Character character)
+        //private void SpawnCharacter(Character character)
+        //{
+        //    CharacterModel characterModel = new(character);
+        //    foreach (UIElement element in characterModel.Shapes)
+        //    {
+        //        GameCanvas.Children.Add(element);
+        //        Canvas.SetLeft(element, character.PositionLT.X);
+        //        Canvas.SetTop(element, character.PositionLT.Y);
+        //    }
+        //}
+
+        private void SpawnBullet(Bullet bulletObj, GameObject gameObject)
         {
-            TranslateTransform moveTransform = new(character.Width / 2, character.Height / 2);
-            List<UIElement> uIElements = new()
+            BulletModel bulletModel = new(bulletObj, gameObject);
+            foreach (UIElement element in bulletModel.Shapes)
             {
-                new Ellipse()
-                {
-                    Uid = character.Guid.ToString(),
-                    Tag = character,
-                    Name = character.Name,
-                    Height = character.Height,
-                    Width = character.Width,
-                    Fill = character is Enemy ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.White),
-                    Opacity = 0.2,
-                    RenderTransformOrigin = new Point(0.5, 0.5)
-                },
-                new Ellipse()
-                {
-                    Uid = character.Guid.ToString(),
-                    Tag = "Character",
-                    Name = character.Name,
-                    Height = character.Height,
-                    Width = character.Width,
-                    Fill = new ImageBrush() { ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/soldier.png")) },
-                    Stroke = character is Enemy ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.White),
-                    StrokeThickness = 1.5,
-                    RenderTransformOrigin = new Point(0.5, 0.5)
-                }
-            };
-
-            foreach (UIElement element in uIElements)
-            {
-                TransformGroup transformGroup = new();
-                transformGroup.Children.Add(moveTransform);
-                element.RenderTransform = transformGroup;
                 GameCanvas.Children.Add(element);
-
-                Canvas.SetLeft(element, character.PositionLT.X);
-                Canvas.SetTop(element, character.PositionLT.Y);
+                Canvas.SetLeft(element, gameObject.CenterPosition.X);
+                Canvas.SetTop(element, gameObject.CenterPosition.Y);
             }
         }
 
-        private void SpawnBullet(Bullet bulletObj, Character character)
+        private void SpawnGameObject(GameObject gameObject)
         {
-            (double Width, double Height) trailSize = (bulletObj.Trail.W, bulletObj.Trail.H);
-            TranslateTransform trailMoveTransform = new(bulletObj.Width - trailSize.Width, (bulletObj.Height / 2) - (trailSize.Height / 2));
-            TranslateTransform moveTransform = new(bulletObj.Width / 2, bulletObj.Height / 2);
-            RotateTransform rotateTransform = new(character.Angle);
-            List<UIElement> uIElements = new()
-            {
-                new Ellipse()
-                {
-                    Uid = bulletObj.Guid.ToString(),
-                    Tag = "BulletTrail",
-                    Height = bulletObj.Trail.H,
-                    Width = bulletObj.Trail.W,
-                    RenderTransformOrigin = new Point(0, 0),
-                    Fill = new SolidColorBrush(Color.FromArgb(123, 225, 219, 158)),
-                    Opacity = 0.1,
-                },
-                new Ellipse()
-                {
-                    Uid = bulletObj.Guid.ToString(),
-                    Tag = "Bullet",
-                    Height = bulletObj.Height,
-                    Width = bulletObj.Width,
-                    RenderTransformOrigin = new Point(0.0, 0.0),
-                    Fill = bulletObj.IsTracer ? Brushes.Gray : Brushes.Red,
-                    Stroke = Brushes.LightYellow,
-                }
-            };
+            ModelFactory factory = new(gameObject);
 
-            foreach (UIElement element in uIElements)
+            foreach (UIElement element in factory.GameObjectModel.Shapes)
             {
-                TransformGroup transformGroup = new();
-
-                if (element is Ellipse ellipse && (string)ellipse.Tag == "BulletTrail")
-                {
-                    transformGroup.Children.Add(trailMoveTransform);
-                }
-                else
-                {
-                    transformGroup.Children.Add(moveTransform);
-                }
-                transformGroup.Children.Add(rotateTransform);
-                element.RenderTransform = transformGroup;
                 GameCanvas.Children.Add(element);
-                Canvas.SetLeft(element, character.CenterPosition.X);
-                Canvas.SetTop(element, character.CenterPosition.Y);
+                Canvas.SetLeft(element, gameObject.PositionLT.X);
+                Canvas.SetTop(element, gameObject.PositionLT.Y);
             }
         }
 
         private void DrawObjects()
         {
-            foreach (UIElement element in GameCanvas.Children.OfType<UIElement>())
+            foreach (GameObjectModel objectModel in GameObjectModel.Models)
             {
-                GameObject? obj = gameEngine!.GameObjects.Find(b => b.Guid.ToString() == element.Uid);
+                GameObject? obj = _gameEngine!.GameObjects.Find(b => b.Guid == objectModel.Guid);
+
                 if (obj != null)
                 {
-                    if (obj is Character character)
+                    if (objectModel is CharacterModel characterModel)
                     {
-                        TransformGroup transformGroup = new();
-                        TranslateTransform moveTransform = new(character.Width / 2, character.Height / 2);
-                        RotateTransform rotateTransform = character is Player ? new(character.CurrentAngle) : new(character.Angle);
-                        //transformGroup.Children.Add(moveTransform);
-                        transformGroup.Children.Add(rotateTransform);
-                        element.RenderTransform = transformGroup;
+                        characterModel.RotateTransform((Character)obj);
                     }
-                    Canvas.SetLeft(element, obj.PositionLT.X);
-                    Canvas.SetTop(element, obj.PositionLT.Y);
+                    foreach (UIElement element in objectModel.Shapes)
+                    {
+                        Canvas.SetLeft(element, obj.PositionLT.X);
+                        Canvas.SetTop(element, obj.PositionLT.Y);
+                    }
                 }
             }
         }
 
         private void DrawLinesOfFire()
         {
-            foreach (Character character in gameEngine!.Characters.Where(c => c is Player))
-            {
-                Line lineOfFire = new()
-                {
-                    Uid = character.Guid.ToString(),
-                    Tag = "LineOfFire",
-                    X1 = character.CenterPosition.X,
-                    Y1 = character.CenterPosition.Y,
-                    X2 = character.Aim.X,
-                    Y2 = character.Aim.Y,
-                    StrokeThickness = 2,
-                    Opacity = 0.1,
-                    Stroke = character is Player ? Brushes.LightGreen : Brushes.Red,
-                };
+            //foreach (GameObjectModel objectModel in GameObjectModel.Models.OfType<LineOfFireModel>())
+            //{
+            //    GameObject? obj = gameEngine!.GameObjects.Find(b => b.Guid == objectModel.Guid);
+            //    if (obj != null)
+            //    {
+            //        CharacterModel characterModel = (CharacterModel)objectModel;
+            //        characterModel.RotateTransform((Character)obj);
+            //        foreach (UIElement element in objectModel.Shapes)
+            //        {
+            //            Canvas.SetLeft(element, obj.PositionLT.X);
+            //            Canvas.SetTop(element, obj.PositionLT.Y);
+            //        }
+            //    }
+            //}
 
-                foreach (Line item in GameCanvas.Children.OfType<Line>().Where(l => (string)l.Tag == "LineOfFire" && l.Uid == character.Guid.ToString()).ToList())
+            foreach (Character character in _gameEngine!.Characters/*.Where(c => c is Character)*/)
+            {
+                foreach (GameObjectModel model in GameObjectModel.Models.OfType<LineOfFireModel>().Where(m => m.Guid == character.Guid))
                 {
-                    GameCanvas.Children.Remove(item);
+                    GameCanvas.Children.Remove(model.Shapes[0]);
                 }
-                GameCanvas.Children.Add(lineOfFire);
+                GameObjectModel.Models.RemoveAll(m => m.GetType() == typeof(LineOfFireModel) && m.Guid == character.Guid);
+                GameCanvas.Children.Add(new LineOfFireModel(character).Shapes.FirstOrDefault());
             }
         }
 
         private void GameCanvas_KeyDown(object sender, KeyEventArgs e)
         {
-            GameControl.KeyDown(this, gameEngine!.Player, e);
+            GameControl.KeyDown(this, _gameEngine!.Player, e);
         }
 
         private void GameCanvas_KeyUp(object sender, KeyEventArgs e)
         {
-            GameControl.KeyUp(gameEngine!.Player, e);
+            GameControl.KeyUp(_gameEngine!.Player, e);
         }
 
         private void GameCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            gameEngine!.Player.Shoot();
+            _gameEngine!.Player.Shoot();
         }
 
         private void GameCanvas_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             Point position = e.GetPosition((IInputElement)sender);
-            gameEngine!.Player.SetPath((position.X, position.Y));
+            _gameEngine!.Player.SetPath((position.X, position.Y));
         }
 
         private void GameCanvas_MouseMoveHandler(object sender, MouseEventArgs e)
         {
             Point position = e.GetPosition((IInputElement)sender);
-            if (gameEngine != null)
+            if (_gameEngine.IsGameStarted)
             {
-                gameEngine.Player.SetAim((position.X, position.Y));
-                gameEngine.Player.Rotate();
+                _gameEngine.Player.SetAim((position.X, position.Y));
+                _gameEngine.Player.Rotate();
             }
         }
 
         private void GameMenu_Restart_Button(object sender, RoutedEventArgs e)
         {
-            if (gameEngine != null)
+            if (_gameEngine.IsGameStarted)
             {
-                gameEngine.Reset();
+                _gameEngine.Reset();
             }
             else
             {
@@ -290,21 +237,24 @@ namespace MilitaryShooter
 
         private void RemoveModel(GameObject gameObject)
         {
-            shapesToRemove.AddRange(GameCanvas.Children.OfType<Rectangle>().Where(rect => (string)rect.Uid == gameObject.Guid.ToString()));
-            shapesToRemove.AddRange(GameCanvas.Children.OfType<Ellipse>().Where(rect => (string)rect.Uid == gameObject.Guid.ToString()));
+            //shapesToRemove.AddRange(GameCanvas.Children.OfType<Rectangle>().Where(rect => (string)rect.Uid == gameObject.Guid.ToString()));
+            //shapesToRemove.AddRange(GameCanvas.Children.OfType<Ellipse>().Where(rect => (string)rect.Uid == gameObject.Guid.ToString()));
 
-            foreach (var item in shapesToRemove)
+            _shapesToRemove.AddRange(GameObjectModel.Models.Where(gom => gom.Guid == gameObject.Guid).SelectMany(gom => gom.Shapes).ToList());
+            GameObjectModel.Models.RemoveAll(model => model.Guid.ToString() == gameObject.Guid.ToString());
+
+            foreach (var item in _shapesToRemove)
             {
                 GameCanvas.Children.Remove(item);
             }
-            shapesToRemove.Clear();
+            _shapesToRemove.Clear();
         }
 
         public async Task GameMenuOpen()
         {
-            if (gameEngine != null)
+            if (_gameEngine.IsGameStarted)
             {
-                gameEngine.Pause();
+                _gameEngine.Pause();
                 Restart_Button.Content = "Restart";
                 Continue_Button.IsEnabled = true;
                 Continue_Button.Background = new SolidColorBrush(Color.FromArgb(123, 225, 219, 158));
@@ -320,33 +270,29 @@ namespace MilitaryShooter
         public async Task GameMenuClose()
         {
             await TransitionToGameCanvas(GameMenu);
-            if (gameEngine != null)
+            if (_gameEngine.IsGameStarted)
             {
-                gameEngine.UnPause();
+                _gameEngine.UnPause();
                 GameCanvas.Focus();
-                await gameEngine.GameLoop();
+                await _gameEngine.GameLoop();
             }
         }
 
         public async Task GamePause()
         {
-            if (gameEngine != null)
+            if (_gameEngine.IsGameStarted)
             {
-                if (gameEngine.Paused)
+                if (_gameEngine.Paused)
                 {
-                    //GameCanvas.Opacity = 1;
-                    //GameCanvas.OpacityMask = null;
                     await TransitionToGameCanvas(GamePauseMask);
                     GameCanvas.Focus();
-                    gameEngine.UnPause();
-                    await gameEngine.GameLoop();
+                    _gameEngine.UnPause();
+                    _gameEngine.GameLoop();
                 }
                 else
                 {
-                    //GameCanvas.Opacity = 0.8;
-                    //GameCanvas.OpacityMask = new SolidColorBrush(Color.FromArgb(251, 0, 0, 0));
                     GamePauseMask.Focus();
-                    gameEngine.Pause();
+                    _gameEngine.Pause();
                     await TransitionTo(GamePauseMask);
                 }
             }
@@ -370,21 +316,21 @@ namespace MilitaryShooter
 
         private async Task FadeOut(UIElement e)
         {
-            e.BeginAnimation(OpacityProperty, fadeOutAnimation);
-            await Task.Delay(fadeOutAnimation.Duration.TimeSpan);
+            e.BeginAnimation(OpacityProperty, _fadeOutAnimation);
+            await Task.Delay(_fadeOutAnimation.Duration.TimeSpan);
             e.Visibility = Visibility.Hidden;
         }
 
         private async Task FadeIn(UIElement e)
         {
-            e.BeginAnimation(OpacityProperty, fadeInAnimation);
-            await Task.Delay(fadeInAnimation.Duration.TimeSpan);
+            e.BeginAnimation(OpacityProperty, _fadeInAnimation);
+            await Task.Delay(_fadeInAnimation.Duration.TimeSpan);
             e.Visibility = Visibility.Visible;
         }
 
         private async void GameMenu_Continue_Button(object sender, RoutedEventArgs e)
         {
-            if (gameEngine != null)
+            if (_gameEngine.IsGameStarted)
             {
                 await GameMenuClose();
             }

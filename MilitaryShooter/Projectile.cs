@@ -6,14 +6,11 @@ namespace MilitaryShooter
     {
         public (double X, double Y) Source { get; set; }
         public (double X, double Y) Target { get; set; }
+        //public override double Angle { get => base.Angle; protected set => base.Angle = value; }
 
         public override void MoveToPoint()
         {
             Displacement(Source, Target);
-        }
-
-        public override void Move()
-        {
         }
 
         protected override (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)

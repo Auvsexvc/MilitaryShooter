@@ -4,6 +4,7 @@ namespace MilitaryShooter
 {
     internal static class GameStatic
     {
-        public static readonly Random rand = new();
+        internal static readonly Random rand = new Random();
+        internal static (double x, double y) resolution;
     }
 }

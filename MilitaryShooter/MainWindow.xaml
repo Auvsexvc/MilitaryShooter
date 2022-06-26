@@ -17,6 +17,7 @@
                     MouseRightButtonDown="GameCanvas_MouseRightButtonDown"
                     KeyDown="GameCanvas_KeyDown"
                     KeyUp="GameCanvas_KeyUp">
+                
             </Canvas>
         </Viewbox>
         <Grid Name="GamePauseMask"
@@ -58,15 +59,6 @@
                         FontSize="24"
                         MaxWidth="200"
                         Click="GameMenu_Continue_Button" />
-                <Button Name="NewGame_Button"
-                        Content="New Game"
-                        Foreground="White"
-                        Background="DimGray"
-                        Margin="0,20,0,0"
-                        Padding="5"
-                        FontSize="24"
-                        MaxWidth="200"
-                        Click="GameMenu_Restart_Button" />
                 <Button Name="Restart_Button"
                         Content="Restart"
                         Foreground="White"
