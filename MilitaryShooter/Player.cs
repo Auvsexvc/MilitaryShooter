@@ -12,9 +12,10 @@ namespace MilitaryShooter
         public Player()
         {
             Name = "PlayerOne";
-            Speed = 4;
+            Speed = 6;
             PositionLT = (GameEngine.ResX / 2.0, GameEngine.ResY / 2.0);
             Health = 100;
+            Laser = false;
         }
 
         public void Move()

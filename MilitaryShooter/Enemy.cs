@@ -15,6 +15,7 @@ namespace MilitaryShooter
             Aim = (GameStatic.rand.Next(0, (int)GameEngine.ResX), GameStatic.rand.Next(0, (int)GameEngine.ResY));
             Health = GameStatic.rand.Next(25, 201);
             RangeOfFire = DefaultRangeOfFire;
+            Laser = false;
         }
 
         public Enemy(Character character) : this()
@@ -55,13 +56,10 @@ namespace MilitaryShooter
                 Stopwatch.Start();
             }
 
-            if (Stopwatch.ElapsedMilliseconds % DefaultRateOfFire == 0 && !shotFired)
+            if (Stopwatch.ElapsedMilliseconds % DefaultRateOfFire == 0 && !shotFired && IsTargetInTheRangeOfFire(target))
             {
-                if (IsTargetInTheRangeOfFire(target))
-                {
-                    Shoot();
-                    shotFired = true;
-                }
+                Shoot();
+                shotFired = true;
             }
             if (Stopwatch.ElapsedMilliseconds > DefaultRateOfFire)
             {

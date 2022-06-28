@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace MilitaryShooter
 {
@@ -17,37 +16,23 @@ namespace MilitaryShooter
         private bool _rotationCheck;
 
         public (double X, double Y) Aim { get; set; }
-        public double CurrentAngle { get; set; }
-        public override double Angle
-        {
-            get
-            {
-                double angle = Math.Atan((Aim.Y - CenterPosition.Y) / (Aim.X - CenterPosition.X)) * 180 / Math.PI;
-                if (Aim.X - CenterPosition.X < 0)
-                {
-                    angle += 180;
-                }
-                else if (angle < 0)
-                {
-                    angle = 360 + angle;
-                }
-
-                return angle;
-            }
-        }
+        public override double Angle => GetAngle();
         public List<(double X, double Y)> PointsToMoveTo { get; set; }
-        //public (double X, double Y) CurrentMoveToPoint => PointsToMoveTo.FirstOrDefault();
         public double RotationSpeed => Speed * DefaultRotationMultiplier;
-        //public (double X, double Y) MaxRange => MaxRangePointTowardTarget(CenterPosition, Aim, RangeOfView);
-        //public bool IsRotated => (Angle - RotationSpeed) > CurrentAngle && (Angle + RotationSpeed) < CurrentAngle;
+
         public double RangeOfView { get; protected set; }
         public double RangeOfFire { get; protected set; }
         public double AimDistance => DistanceMeter(CenterPosition, Aim);
         public int BulletsFired { get; private set; }
         public int RateOfFire { get; }
+        public bool Laser { get; protected set; }
         public Stopwatch Stopwatch { get; }
 
-        public event Action<Character>? FireBullet;
+        public event Action<Character, Projectile>? FireBullet;
+
+        public event Action<Character, Projectile>? UseGrenade;
+
+        public event Action? Death;
 
         protected Character()
         {
@@ -59,6 +44,22 @@ namespace MilitaryShooter
             RangeOfFire = DefaultRangeOfFire;
             PointsToMoveTo = new List<(double X, double Y)>();
             Stopwatch = new Stopwatch();
+            Laser = false;
+        }
+
+        private double GetAngle()
+        {
+            double angle = Math.Atan((Aim.Y - CenterPosition.Y) / (Aim.X - CenterPosition.X)) * 180 / Math.PI;
+            if (Aim.X - CenterPosition.X < 0)
+            {
+                angle += 180;
+            }
+            else if (angle < 0)
+            {
+                angle = 360 + angle;
+            }
+
+            return angle;
         }
 
         public void SetAim((double X, double Y) aim)
@@ -66,12 +67,37 @@ namespace MilitaryShooter
             Aim = (aim.X > GameEngine.ResX ? GameEngine.ResX : aim.X, aim.Y > GameEngine.ResY ? GameEngine.ResY : aim.Y);
         }
 
+        public void SwitchLaserTargeting()
+        {
+            Laser = !Laser;
+        }
+
         public void Shoot()
         {
             if (_rotationCheck)
             {
-                FireBullet?.Invoke(this);
+                FireBullet?.Invoke(this, new Bullet
+                {
+                    Target = Aim,
+                    Source = CenterPosition,
+                    PositionLT = CenterPosition,
+                    Shooter = this
+                });
                 BulletsFired++;
+            }
+        }
+
+        internal void ThrowGrenade()
+        {
+            if (_rotationCheck)
+            {
+                UseGrenade?.Invoke(this, new Grenade
+                {
+                    Target = Aim,
+                    Source = CenterPosition,
+                    PositionLT = CenterPosition,
+                    Shooter = this
+                });
             }
         }
 
@@ -149,7 +175,8 @@ namespace MilitaryShooter
             return (CenterPosition.X + aPrim, CenterPosition.Y + bPrim);
         }
 
-        protected static double DistanceMeter((double X, double Y) source, (double X, double Y) target) => Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
+        protected static double DistanceMeter((double X, double Y) source, (double X, double Y) target) =>
+            Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
 
         public override void MoveToPoint()
         {
@@ -209,6 +236,20 @@ namespace MilitaryShooter
         public bool IsTargetInTheRangeOfFire(GameObject gameObject)
         {
             return Math.Sqrt(Math.Pow(gameObject.CenterPosition.X - CenterPosition.X, 2) + Math.Pow(gameObject.CenterPosition.Y - CenterPosition.Y, 2)) <= RangeOfFire;
+        }
+
+        public override void TakeDamage(double damage)
+        {
+            Health -= (int)damage;
+            if (IsKilled())
+            {
+                Death?.Invoke();
+            }
+        }
+
+        private bool IsKilled()
+        {
+            return Health <= 0;
         }
     }
 }

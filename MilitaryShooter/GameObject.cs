@@ -7,7 +7,7 @@ using System.Windows;
 
 namespace MilitaryShooter
 {
-    internal abstract class GameObject : INotifyPropertyChanged
+    internal abstract class GameObject
     {
         private const int Margin = 64;
 
@@ -17,13 +17,13 @@ namespace MilitaryShooter
         public double Width { get; protected set; }
         public double Height { get; protected set; }
         public virtual double Angle { get; protected set; }
+        public double CurrentAngle { get; set; }
         public int Health { get; protected set; }
         public (double X, double Y) PositionLT { get; set; }
         public (double X, double Y) CenterPosition => (PositionLT.X + (Width / 2), PositionLT.Y + (Height / 2));
+        public bool IsExpired { get; set; }
 
         public static event Action<GameObject>? OnCreate;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
 
         public abstract void MoveToPoint();
 
@@ -39,34 +39,32 @@ namespace MilitaryShooter
             {
                 list = list.Except(exception.Cast<GameObject>()).ToList();
             }
-            foreach (GameObject obj in list)
+
+            foreach (var obj in list.Where(obj => this.IntersectsWith(obj)))
             {
-                if (this.IntersectsWith(obj))
-                {
-                    return obj;
-                }
+                return obj;
             }
+
             return null;
         }
 
-        public bool IsOutOfBounds() => PositionLT.X < -Margin || PositionLT.X > GameEngine.ResX + Margin || PositionLT.Y < -Margin || PositionLT.Y > GameEngine.ResY + Margin;
+        public bool IsOutOfBounds()
+        {
+            return PositionLT.X < -Margin || PositionLT.X > GameEngine.ResX + Margin || PositionLT.Y < -Margin || PositionLT.Y > GameEngine.ResY + Margin;
+        }
 
         protected GameObject()
         {
             Guid = Guid.NewGuid();
+            IsExpired = false;
             OnCreate?.Invoke(this);
         }
 
         protected abstract (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target);
 
-        protected virtual void OnPropertyChanged([CallerMemberName] string? name = null)
+        public virtual void TakeDamage(double damage)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
-
-        public void TakeDamage(int damage)
-        {
-            Health -= damage;
+            Health -= (int)damage;
         }
     }
 }

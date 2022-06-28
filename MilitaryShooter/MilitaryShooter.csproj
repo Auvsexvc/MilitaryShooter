@@ -9,12 +9,18 @@
 
   <ItemGroup>
     <None Remove="Assets\grass.jpg" />
+    <None Remove="Assets\grenade.png" />
     <None Remove="Assets\soldier.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Assets\grass.jpg" />
-    <Resource Include="Assets\soldier.png" />
+    <EmbeddedResource Include="Assets\grenade.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Assets\soldier.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

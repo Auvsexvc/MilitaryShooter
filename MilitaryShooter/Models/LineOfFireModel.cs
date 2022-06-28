@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -26,17 +25,8 @@ namespace MilitaryShooter.Models
             };
         }
 
-        public void RotateTransform(Character character)
+        public override void Transform()
         {
-            foreach (Shape element in Shapes)
-            {
-                TransformGroup transformGroup = new();
-                //TranslateTransform moveTransform = new(character.Width / 2, character.Height / 2);
-                RotateTransform rotateTransform = character is Player ? new(character.CurrentAngle) : new(character.Angle);
-                //transformGroup.Children.Add(moveTransform);
-                transformGroup.Children.Add(rotateTransform);
-                element.RenderTransform = transformGroup;
-            }
         }
     }
 }

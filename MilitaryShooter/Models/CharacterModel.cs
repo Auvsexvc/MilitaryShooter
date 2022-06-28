@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using System.Xml.Linq;
 
 namespace MilitaryShooter.Models
 {
     internal class CharacterModel : GameObjectModel
     {
+        private const string UriString = "Assets/soldier.png";
+
         public CharacterModel(Character character) : base(character)
         {
             TranslateTransform moveTransform = new(character.Width / 2, character.Height / 2);
@@ -33,7 +35,7 @@ namespace MilitaryShooter.Models
                     Name = character.Name,
                     Height = character.Height,
                     Width = character.Width,
-                    Fill = new ImageBrush() { ImageSource = new BitmapImage(new Uri("pack://application:,,,/Assets/soldier.png")) },
+                    Fill = new ImageBrush() { ImageSource = new BitmapImage(new Uri(UriString, UriKind.Relative)) },
                     Stroke = character is Enemy ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.White),
                     StrokeThickness = 1.5,
                     RenderTransformOrigin = new Point(0.5, 0.5)
@@ -48,14 +50,12 @@ namespace MilitaryShooter.Models
             }
         }
 
-        public void RotateTransform(Character character)
+        public override void Transform()
         {
             foreach (Shape element in Shapes)
             {
                 TransformGroup transformGroup = new();
-                //TranslateTransform moveTransform = new(character.Width / 2, character.Height / 2);
-                RotateTransform rotateTransform = character is Player ? new(character.CurrentAngle) : new(character.Angle);
-                //transformGroup.Children.Add(moveTransform);
+                RotateTransform rotateTransform = GameObject is Player ? new(GameObject.CurrentAngle) : new(GameObject.Angle);
                 transformGroup.Children.Add(rotateTransform);
                 element.RenderTransform = transformGroup;
             }

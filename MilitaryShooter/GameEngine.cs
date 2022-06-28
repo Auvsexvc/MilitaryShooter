@@ -17,12 +17,12 @@ namespace MilitaryShooter
         public EnemyQueue EnemyQueue { get; }
         public Enemy CurrentEnemy { get; }
         public List<GameObject> GameObjects { get; }
-        public List<Character> Characters => GameObjects.OfType<Character>().ToList();
-        public List<Bullet> Bullets => GameObjects.OfType<Bullet>().ToList();
-        public bool IsGameStarted { get; }
+
+        public bool IsGameStarted { get; private set; }
+        public bool GameOver { get; private set; }
         public bool Paused { get; set; }
 
-        public event Action<Bullet, Character>? TriggerSpawnBulletModel;
+        public event Action<Projectile, Character>? TriggerSpawnBulletModel;
 
         public event Action<Character>? TriggerSpawnModel;
 
@@ -30,6 +30,7 @@ namespace MilitaryShooter
 
         public event Action<GameObject>? TriggerSpawn;
 
+        public event Action? TriggerPlayerDeath;
         public event Action? GameRestarted;
 
         public event Action? DrawObjects;
@@ -45,17 +46,19 @@ namespace MilitaryShooter
             if (!isGameStarted)
             {
                 IsGameStarted = false;
+                Player = new Player();
                 EnemyQueue = new EnemyQueue();
                 CurrentEnemy = new Enemy();
             }
             else
             {
                 GameObject.OnCreate += OnGameObjectCreate;
+                Player = new Player();
+                Player.Death += OnPlayerDeath;
                 EnemyQueue = new EnemyQueue();
                 CurrentEnemy = EnemyQueue.Clones(0);
                 IsGameStarted = true;
             }
-            Player = new Player();
         }
 
         public async Task GameLoop()
@@ -66,8 +69,8 @@ namespace MilitaryShooter
                 await Task.Delay(delay);
 
                 DrawObjects!();
-                UpdateObjects();
                 DrawLinesOfFire!();
+                UpdateObjects();
                 UpdateLabels!();
                 CleanGameObjects();
             }
@@ -78,7 +81,6 @@ namespace MilitaryShooter
             for (int i = 0; i < GameObjects.Count; i++)
             {
                 GameObject obj = GameObjects[i];
-
                 if (obj is Player player)
                 {
                     if (player.PointsToMoveTo.Count > 0)
@@ -96,21 +98,21 @@ namespace MilitaryShooter
                     enemy.ShorteningDistanceToTarget(Player);
                     enemy.ShootAtTarget(Player);
                 }
-                else if (obj is Bullet bullet)
+                else if (obj is Projectile projectile)
                 {
-                    GameObject? collider = bullet.CheckCollisions(GameObjects, Bullets);
-                    if (collider != null && collider != bullet.Shooter)
+                    GameObject? collider = projectile.CheckCollisions(GameObjects, GetProjectiles());
+                    if (collider != null && collider != projectile.Shooter)
                     {
-                        collider.TakeDamage(25);
+                        collider.TakeDamage(projectile.Damage);
                         RemoveGameObject(obj);
                     }
                     else
                     {
-                        bullet.MoveToPoint();
+                        projectile.MoveToPoint();
                     }
                 }
 
-                if (obj.IsOutOfBounds())
+                if (obj.IsExpired)
                 {
                     RemoveGameObject(obj);
                 }
@@ -123,14 +125,12 @@ namespace MilitaryShooter
             {
                 GameObjects.RemoveAll(o => _gameObjectsToClean.Contains(o));
                 _gameObjectsToClean.Clear();
-
-                GC.Collect();
             }
         }
 
         public void SpawnCharacters()
         {
-            foreach (var character in Characters)
+            foreach (var character in GetCharacters())
             {
                 Spawn(character);
             }
@@ -139,24 +139,18 @@ namespace MilitaryShooter
         private void Spawn(Character character)
         {
             TriggerSpawnModel?.Invoke(character);
-            character.FireBullet += SpawnBulletFiredBy;
+            character.FireBullet += SpawnProjectileFiredBy;
+            character.UseGrenade += SpawnProjectileFiredBy;
         }
 
-        private void SpawnBulletFiredBy(Character character)
+        private void SpawnProjectileFiredBy(Character character, Projectile projectile)
         {
-            Bullet newBullet = new()
-            {
-                Target = character.Aim,
-                Source = character.CenterPosition,
-                PositionLT = character.CenterPosition,
-                Shooter = character
-            };
-            if (character.BulletsFired > 0 && character.BulletsFired % GameStatic.rand.Next(3, 6) == 0)
+            if (projectile is Bullet newBullet && character.BulletsFired > 0 && character.BulletsFired % GameStatic.rand.Next(3, 6) == 0)
             {
                 newBullet.SetToTracerRound();
             }
 
-            TriggerSpawnBulletModel?.Invoke(newBullet, character);
+            TriggerSpawnBulletModel?.Invoke(projectile, character);
         }
 
         private void OnGameObjectCreate(GameObject gameObject)
@@ -185,6 +179,24 @@ namespace MilitaryShooter
         {
             GameObjects.Clear();
             GameRestarted?.Invoke();
+        }
+
+        private void OnPlayerDeath()
+        {
+            GameOver = true;
+            Pause();
+            IsGameStarted = false;
+            TriggerPlayerDeath?.Invoke();
+        }
+
+        public List<Character> GetCharacters()
+        {
+            return GameObjects.OfType<Character>().ToList();
+        }
+
+        public List<Projectile> GetProjectiles()
+        {
+            return GameObjects.OfType<Projectile>().ToList();
         }
     }
 }

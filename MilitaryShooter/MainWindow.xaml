@@ -17,7 +17,6 @@
                     MouseRightButtonDown="GameCanvas_MouseRightButtonDown"
                     KeyDown="GameCanvas_KeyDown"
                     KeyUp="GameCanvas_KeyUp">
-                
             </Canvas>
         </Viewbox>
         <Grid Name="GamePauseMask"
@@ -45,7 +44,8 @@
               Visibility="Hidden">
             <StackPanel HorizontalAlignment="Center"
                         VerticalAlignment="Center">
-                <TextBlock Text="Game Menu"
+                <TextBlock Name ="GameMenuText"
+                           Text="Game Menu"
                            FontSize="48"
                            TextAlignment="Center"
                            Foreground="White"

@@ -1,4 +1,7 @@
-﻿namespace MilitaryShooter.Models
+﻿using System;
+using System.Collections.Concurrent;
+
+namespace MilitaryShooter.Models
 {
     internal class ModelFactory
     {
@@ -24,7 +27,7 @@
             }
             else
             {
-                GameObjectModel = new BulletModel((Bullet)projectile, gameObject);
+                GameObjectModel = new GrenadeModel((Grenade)projectile, gameObject);
             }
         }
     }

@@ -6,18 +6,20 @@ namespace MilitaryShooter.Models
 {
     internal abstract class GameObjectModel
     {
-        public static List<GameObjectModel> models = new();
-        public static List<GameObjectModel> Models { get => models; set => models = value; }
-        public Guid Guid { get; set; }
-        public Type Type { get; set; }
+        public static List<GameObjectModel> Models { get; set; } = new List<GameObjectModel>();
+        public Guid Guid { get; }
+        public GameObject GameObject { get; }
 
-        public List<Shape> Shapes { get; set; } = new();
+        public List<Shape> Shapes { get; protected set; }
 
         protected GameObjectModel(GameObject gameObject)
         {
+            Shapes = new List<Shape>();
+            GameObject = gameObject;
             Guid = gameObject.Guid;
-            Type = gameObject.GetType();
-            models.Add(this);
+            Models.Add(this);
         }
+
+        public abstract void Transform();
     }
 }
