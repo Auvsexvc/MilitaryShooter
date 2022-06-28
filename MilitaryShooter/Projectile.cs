@@ -41,7 +41,7 @@ namespace MilitaryShooter
             return (CenterPosition.X + aPrim, CenterPosition.Y + bPrim);
         }
 
-        protected double DistanceMeter((double X, double Y) source, (double X, double Y) target) =>
+        protected static double DistanceMeter((double X, double Y) source, (double X, double Y) target) =>
             Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
     }
 }

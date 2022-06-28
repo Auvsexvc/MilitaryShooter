@@ -77,6 +77,7 @@ namespace MilitaryShooter
             }
 
             PositionLT = (PositionLT.X + NewPositionLT.X, PositionLT.Y + NewPositionLT.Y);
+            Rotate();
         }
 
         public void AltMove()

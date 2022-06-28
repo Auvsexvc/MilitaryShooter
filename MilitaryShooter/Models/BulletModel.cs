@@ -54,6 +54,7 @@ namespace MilitaryShooter.Models
                 shape.RenderTransform = transformGroup;
             }
         }
+
         public override void Transform()
         {
         }

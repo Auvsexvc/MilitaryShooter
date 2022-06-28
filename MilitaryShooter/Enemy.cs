@@ -1,26 +1,24 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace MilitaryShooter
 {
     internal class Enemy : Character, ICloneable
     {
-        private bool shotFired;
-
         public Enemy()
         {
             Name = "Enemy";
             Speed = GameStatic.rand.Next(1, 4) + GameStatic.rand.NextDouble();
             PositionLT = (GameStatic.rand.Next((int)Width, (int)GameEngine.ResX) - (int)Width, GameStatic.rand.Next((int)Height, (int)GameEngine.ResY) - (int)Height);
-            Aim = (GameStatic.rand.Next(0, (int)GameEngine.ResX), GameStatic.rand.Next(0, (int)GameEngine.ResY));
+            SetAim((GameStatic.rand.Next(0, (int)GameEngine.ResX), GameStatic.rand.Next(0, (int)GameEngine.ResY)));
             Health = GameStatic.rand.Next(25, 201);
             RangeOfFire = DefaultRangeOfFire;
+            RateOfFire += 500;
             Laser = false;
         }
 
         public Enemy(Character character) : this()
         {
-            Aim = character.CenterPosition;
+            SetAim(character.CenterPosition);
         }
 
         public Enemy(double x, double y) : this()
@@ -30,7 +28,7 @@ namespace MilitaryShooter
 
         public Enemy(double x, double y, Character character) : this(x, y)
         {
-            Aim = character.CenterPosition;
+            SetAim(character.CenterPosition);
         }
 
         public object Clone()
@@ -42,30 +40,12 @@ namespace MilitaryShooter
             return clone;
         }
 
-        public void LocksTarget(Character target)
-        {
-            Aim = target.CenterPosition;
-            Rotate();
-        }
-
         public void ShootAtTarget(Character target)
         {
             LocksTarget(target);
-            if (!Stopwatch.IsRunning)
+            if (IsTargetInTheRangeOfFire(target))
             {
-                Stopwatch.Start();
-            }
-
-            if (Stopwatch.ElapsedMilliseconds % DefaultRateOfFire == 0 && !shotFired && IsTargetInTheRangeOfFire(target))
-            {
-                Shoot();
-                shotFired = true;
-            }
-            if (Stopwatch.ElapsedMilliseconds > DefaultRateOfFire)
-            {
-                Stopwatch.Stop();
-                Stopwatch.Reset();
-                shotFired = false;
+                ShootROF();
             }
         }
 

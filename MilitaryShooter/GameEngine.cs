@@ -31,6 +31,7 @@ namespace MilitaryShooter
         public event Action<GameObject>? TriggerSpawn;
 
         public event Action? TriggerPlayerDeath;
+
         public event Action? GameRestarted;
 
         public event Action? DrawObjects;

@@ -13,8 +13,7 @@
                     Height="900"
                     Width="1600"
                     MouseMove="GameCanvas_MouseMoveHandler"
-                    MouseLeftButtonDown="GameCanvas_MouseLeftButtonDown"
-                    MouseRightButtonDown="GameCanvas_MouseRightButtonDown"
+                    MouseDown="GameCanvas_MouseDown"
                     KeyDown="GameCanvas_KeyDown"
                     KeyUp="GameCanvas_KeyUp">
             </Canvas>

@@ -150,15 +150,33 @@ namespace MilitaryShooter
             GameControl.KeyUp(_gameEngine!.Player, e);
         }
 
-        private void GameCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void GameCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            _gameEngine.Player.Shoot();
-        }
+            switch (e.ChangedButton)
+            {
+                case MouseButton.Left:
+                    _gameEngine.Player.ShootROF();
+                    break;
 
-        private void GameCanvas_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            Point position = e.GetPosition((IInputElement)sender);
-            _gameEngine.Player.SetPath((position.X, position.Y));
+                case MouseButton.Middle:
+                    break;
+
+                case MouseButton.Right:
+                    Point position = e.GetPosition((IInputElement)sender);
+                    _gameEngine.Player.SetPath((position.X, position.Y));
+                    break;
+
+                case MouseButton.XButton1:
+
+                    break;
+
+                case MouseButton.XButton2:
+
+                    break;
+
+                default:
+                    break;
+            }
         }
 
         private void GameCanvas_MouseMoveHandler(object sender, MouseEventArgs e)

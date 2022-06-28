@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-
-namespace MilitaryShooter.Models
+﻿namespace MilitaryShooter.Models
 {
     internal class ModelFactory
     {

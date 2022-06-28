@@ -13,18 +13,15 @@ namespace MilitaryShooter
         protected const double DefaultRangeOfFire = 700;
         protected const double DefaultRotationMultiplier = 1.5;
 
-        private bool _rotationCheck;
-
         public (double X, double Y) Aim { get; set; }
         public override double Angle => GetAngle();
         public List<(double X, double Y)> PointsToMoveTo { get; set; }
         public double RotationSpeed => Speed * DefaultRotationMultiplier;
-
         public double RangeOfView { get; protected set; }
         public double RangeOfFire { get; protected set; }
         public double AimDistance => DistanceMeter(CenterPosition, Aim);
         public int BulletsFired { get; private set; }
-        public int RateOfFire { get; }
+        public int RateOfFire { get; protected set; }
         public bool Laser { get; protected set; }
         public Stopwatch Stopwatch { get; }
 
@@ -72,9 +69,9 @@ namespace MilitaryShooter
             Laser = !Laser;
         }
 
-        public void Shoot()
+        private void Shoot()
         {
-            if (_rotationCheck)
+            if (Rotate())
             {
                 FireBullet?.Invoke(this, new Bullet
                 {
@@ -87,9 +84,29 @@ namespace MilitaryShooter
             }
         }
 
+        public void ShootROF()
+        {
+            if (!Stopwatch.IsRunning)
+            {
+                Shoot();
+                Stopwatch.Start();
+            }
+            if (Stopwatch.ElapsedMilliseconds >= RateOfFire)
+            {
+                Stopwatch.Stop();
+                Stopwatch.Reset();
+            }
+        }
+
+        public void LocksTarget(Character target)
+        {
+            SetAim(target.CenterPosition);
+            Rotate();
+        }
+
         internal void ThrowGrenade()
         {
-            if (_rotationCheck)
+            if (Rotate())
             {
                 UseGrenade?.Invoke(this, new Grenade
                 {
@@ -101,7 +118,7 @@ namespace MilitaryShooter
             }
         }
 
-        public void Rotate()
+        public bool Rotate()
         {
             CurrentAngle %= 360;
             if ((Angle - RotationSpeed) > CurrentAngle)
@@ -122,7 +139,7 @@ namespace MilitaryShooter
                         CurrentAngle = 360 + CurrentAngle;
                     }
                 }
-                _rotationCheck = false;
+                return false;
             }
             else if ((Angle + RotationSpeed) < CurrentAngle)
             {
@@ -142,12 +159,12 @@ namespace MilitaryShooter
                         CurrentAngle = 360 - CurrentAngle;
                     }
                 }
-                _rotationCheck = false;
+                return false;
             }
             else
             {
                 CurrentAngle = Angle;
-                _rotationCheck = true;
+                return true;
             }
         }
 
@@ -208,7 +225,7 @@ namespace MilitaryShooter
             PositionLT = d;
         }
 
-        public void MoveToPoint(Character target)
+        public void MoveToCharacter(Character target)
         {
             (double x, double y) d = Displacement(PositionLT, target.CenterPosition);
 

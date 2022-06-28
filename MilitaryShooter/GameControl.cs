@@ -13,24 +13,30 @@ namespace MilitaryShooter
                     player.MoveLeft = true;
                     player.PointsToMoveTo.Clear();
                     break;
+
                 case Key.D:
                     player.MoveRight = true;
                     player.PointsToMoveTo.Clear();
                     break;
+
                 case Key.W:
                     player.MoveUp = true;
                     player.PointsToMoveTo.Clear();
                     break;
+
                 case Key.S:
                     player.MoveDown = true;
                     player.PointsToMoveTo.Clear();
                     break;
+
                 case Key.F:
                     player.SwitchLaserTargeting();
                     break;
+
                 case Key.G:
                     player.ThrowGrenade();
                     break;
+
                 case Key.Escape:
                     if (window.GameMenu.Visibility != Visibility.Visible)
                     {
@@ -41,6 +47,7 @@ namespace MilitaryShooter
                         _ = window.GameMenuClose();
                     }
                     break;
+
                 case Key.Space:
                     _ = window.InGamePauseSwitch();
                     break;
