@@ -88,5 +88,9 @@ namespace MilitaryShooter
                 IsExpired = true;
             }
         }
+
+        public override void TakeAction()
+        {
+        }
     }
 }

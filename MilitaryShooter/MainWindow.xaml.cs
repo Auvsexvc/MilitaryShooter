@@ -38,8 +38,7 @@ namespace MilitaryShooter
                 From = 0,
                 To = 1
             };
-            GameStatic.resolution = (GameCanvas.Width, GameCanvas.Height);
-            _gameEngine = new GameEngine(false);
+            _gameEngine = new GameEngine();
         }
 
         private async Task SetUpGame()
@@ -47,7 +46,7 @@ namespace MilitaryShooter
             GameCanvas.Children.Clear();
             GameCanvas.Background = new SolidColorBrush(Color.FromArgb(255, 28, 28, 28));
             GameCanvas.Focus();
-            _gameEngine = new GameEngine(true);
+            _gameEngine = new GameEngine(GameCanvas.Width, GameCanvas.Height);
             _gameEngine.DrawObjects += DrawObjects;
             _gameEngine.DrawLinesOfFire += DrawLinesOfFire;
             _gameEngine.UpdateLabels += UpdateLabels;
@@ -56,6 +55,8 @@ namespace MilitaryShooter
             _gameEngine.TriggerSpawnModel += SpawnGameObject;
             _gameEngine.TriggerRemoveModel += RemoveModel;
             _gameEngine.TriggerPlayerDeath += OnPlayerDeath;
+            _gameEngine.TriggerGamePause += InGamePauseSwitch;
+            _gameEngine.TriggerGameMenu += OnGameMenuSwitched;
             _gameEngine.SpawnCharacters();
             SpawnLabels();
             await _gameEngine.GameLoop();
@@ -66,7 +67,7 @@ namespace MilitaryShooter
             Label healthLabel = new()
             {
                 Name = "Health",
-                Content = $"Health: {_gameEngine!.Player.Health}",
+                Content = $"Health: {_gameEngine.Player!.Health}",
                 Tag = "Player",
                 FontSize = 18,
                 FontWeight = FontWeights.Bold,
@@ -86,7 +87,7 @@ namespace MilitaryShooter
         {
             foreach (Label label in GameCanvas.Children.OfType<Label>())
             {
-                label.Content = $"{label.Name}: {_gameEngine!.Player.Health}";
+                label.Content = $"{label.Name}: {_gameEngine.Player!.Health}";
             }
         }
 
@@ -142,47 +143,52 @@ namespace MilitaryShooter
 
         private void GameCanvas_KeyDown(object sender, KeyEventArgs e)
         {
-            GameControl.KeyDown(this, _gameEngine!.Player, e);
+            if (_gameEngine.Player != null)
+                GameControl.KeyDown(_gameEngine.Player, e);
         }
 
         private void GameCanvas_KeyUp(object sender, KeyEventArgs e)
         {
-            GameControl.KeyUp(_gameEngine!.Player, e);
+            if (_gameEngine.Player != null)
+                GameControl.KeyUp(_gameEngine.Player, e);
         }
 
         private void GameCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            switch (e.ChangedButton)
+            if (_gameEngine.Player != null)
             {
-                case MouseButton.Left:
-                    _gameEngine.Player.ShootROF();
-                    break;
+                switch (e.ChangedButton)
+                {
+                    case MouseButton.Left:
+                        _gameEngine.Player.ShootROF();
+                        break;
 
-                case MouseButton.Middle:
-                    break;
+                    case MouseButton.Middle:
+                        break;
 
-                case MouseButton.Right:
-                    Point position = e.GetPosition((IInputElement)sender);
-                    _gameEngine.Player.SetPath((position.X, position.Y));
-                    break;
+                    case MouseButton.Right:
+                        Point position = e.GetPosition((IInputElement)sender);
+                        _gameEngine.Player.SetPath((position.X, position.Y));
+                        break;
 
-                case MouseButton.XButton1:
+                    case MouseButton.XButton1:
 
-                    break;
+                        break;
 
-                case MouseButton.XButton2:
+                    case MouseButton.XButton2:
 
-                    break;
+                        break;
 
-                default:
-                    break;
+                    default:
+                        break;
+                }
             }
         }
 
         private void GameCanvas_MouseMoveHandler(object sender, MouseEventArgs e)
         {
             Point position = e.GetPosition((IInputElement)sender);
-            if (_gameEngine.IsGameStarted)
+            if (_gameEngine.IsGameStarted && _gameEngine.Player != null)
             {
                 _gameEngine.Player.SetAim((position.X, position.Y));
                 _gameEngine.Player.Rotate();
@@ -218,6 +224,18 @@ namespace MilitaryShooter
             _shapesToRemove.Clear();
         }
 
+        private async void OnGameMenuSwitched()
+        {
+            if (GameMenu.Visibility != Visibility.Visible)
+            {
+                await GameMenuOpen();
+            }
+            else
+            {
+                await GameMenuClose();
+            }
+        }
+
         public async Task GameMenuOpen()
         {
             if (_gameEngine.GameOver)
@@ -251,7 +269,7 @@ namespace MilitaryShooter
             }
         }
 
-        public async Task InGamePauseSwitch()
+        public async void InGamePauseSwitch()
         {
             if (_gameEngine.IsGameStarted)
             {

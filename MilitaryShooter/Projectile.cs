@@ -11,6 +11,8 @@ namespace MilitaryShooter
         public Character? Shooter { get; set; }
         public double DistanceCovered { get; set; }
 
+
+
         public override void MoveToPoint()
         {
             Displacement(Source, Target);

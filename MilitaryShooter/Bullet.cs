@@ -44,5 +44,10 @@
             Speed *= (1 - 0.15);
             _spray = (_spray.x * 2, _spray.y * 2);
         }
+
+        public override void TakeAction()
+        {
+
+        }
     }
 }

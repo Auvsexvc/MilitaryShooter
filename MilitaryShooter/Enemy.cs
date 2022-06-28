@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Windows.Documents;
 
 namespace MilitaryShooter
 {
@@ -40,7 +43,7 @@ namespace MilitaryShooter
             return clone;
         }
 
-        public void ShootAtTarget(Character target)
+        public void ShootAtTarget(GameObject target)
         {
             LocksTarget(target);
             if (IsTargetInTheRangeOfFire(target))
@@ -49,7 +52,7 @@ namespace MilitaryShooter
             }
         }
 
-        public void ShorteningDistanceToTarget(Character target)
+        public void ShorteningDistanceToTarget(GameObject target)
         {
             LocksTarget(target);
             if (!IsTargetInTheRangeOfView(target))
@@ -57,6 +60,19 @@ namespace MilitaryShooter
                 (double X, double Y) maxRangePointTowardTarget = MaxRangePointTowardTarget(this.CenterPosition, target.CenterPosition, RangeOfView);
                 MoveToPoint(maxRangePointTowardTarget);
             }
+        }
+
+        public override void TakeAction()
+        {
+            GameObject target = SetNearestTarget();
+            LocksTarget(target);
+            ShorteningDistanceToTarget(target);
+            ShootAtTarget(target);
+        }
+
+        private GameObject SetNearestTarget()
+        {
+            return _gameObjects.Last(o => o is Player);
         }
     }
 }

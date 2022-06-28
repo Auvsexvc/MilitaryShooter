@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 
@@ -7,7 +8,7 @@ namespace MilitaryShooter
 {
     internal abstract class GameObject
     {
-        private const int Margin = 64;
+        protected static readonly List<GameObject> _gameObjects = new List<GameObject>();
 
         public Guid Guid { get; protected set; }
         public string? Name { get; protected set; }
@@ -24,6 +25,7 @@ namespace MilitaryShooter
         public static event Action<GameObject>? OnCreate;
 
         public abstract void MoveToPoint();
+        public abstract void TakeAction();
 
         private bool IntersectsWith(GameObject gameObject)
         {
@@ -48,13 +50,14 @@ namespace MilitaryShooter
 
         public bool IsOutOfBounds()
         {
-            return PositionLT.X < -Margin || PositionLT.X > GameEngine.ResX + Margin || PositionLT.Y < -Margin || PositionLT.Y > GameEngine.ResY + Margin;
+            return CenterPosition.X + Width < 0 || PositionLT.X - Width > GameEngine.ResX || PositionLT.Y + Width < 0|| PositionLT.Y - Width > GameEngine.ResY;
         }
 
         protected GameObject()
         {
             Guid = Guid.NewGuid();
             IsExpired = false;
+            _gameObjects.Add(this);
             OnCreate?.Invoke(this);
         }
 

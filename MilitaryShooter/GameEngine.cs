@@ -10,12 +10,11 @@ namespace MilitaryShooter
         private const int MaxDelay = 16;
         private const int MinDelay = 16;
 
-        private readonly List<GameObject> _gameObjectsToClean;
-        public static double ResX => GameStatic.resolution.x;
-        public static double ResY => GameStatic.resolution.y;
-        public Player Player { get; set; }
-        public EnemyQueue EnemyQueue { get; }
-        public Enemy CurrentEnemy { get; }
+        public static double ResX { get; private set; }
+        public static double ResY { get; private set; }
+        public Player? Player { get; set; }
+        public EnemyQueue? EnemyQueue { get; }
+        public Enemy? CurrentEnemy { get; }
         public List<GameObject> GameObjects { get; }
 
         public bool IsGameStarted { get; private set; }
@@ -39,27 +38,38 @@ namespace MilitaryShooter
         public event Action? DrawLinesOfFire;
 
         public event Action? UpdateLabels;
+        public event Action? TriggerGamePause;
+        public event Action? TriggerGameMenu;
 
-        public GameEngine(bool isGameStarted)
+        public GameEngine()
         {
-            _gameObjectsToClean = new List<GameObject>();
+            IsGameStarted = false;
             GameObjects = new List<GameObject>();
-            if (!isGameStarted)
-            {
-                IsGameStarted = false;
-                Player = new Player();
-                EnemyQueue = new EnemyQueue();
-                CurrentEnemy = new Enemy();
-            }
-            else
-            {
-                GameObject.OnCreate += OnGameObjectCreate;
-                Player = new Player();
-                Player.Death += OnPlayerDeath;
-                EnemyQueue = new EnemyQueue();
-                CurrentEnemy = EnemyQueue.Clones(0);
-                IsGameStarted = true;
-            }
+        }
+
+        public GameEngine(double resX, double resY)
+        {
+            ResX = resX;
+            ResY = resY;
+            GameObjects = new List<GameObject>();
+            GameObject.OnCreate += OnGameObjectCreate;
+            Player = new Player();
+            Player.Death += OnPlayerDeath;
+            Player.SwitchedGamePause += OnGamePauseSwitched;
+            Player.SwitchedGameMenu += OnGameMenuSwitch;
+            EnemyQueue = new EnemyQueue();
+            CurrentEnemy = EnemyQueue.Clones(0);
+            IsGameStarted = true;
+        }
+
+        private void OnGameMenuSwitch()
+        {
+            TriggerGameMenu?.Invoke();
+        }
+
+        private void OnGamePauseSwitched()
+        {
+            TriggerGamePause?.Invoke();
         }
 
         public async Task GameLoop()
@@ -82,24 +92,8 @@ namespace MilitaryShooter
             for (int i = 0; i < GameObjects.Count; i++)
             {
                 GameObject obj = GameObjects[i];
-                if (obj is Player player)
-                {
-                    if (player.PointsToMoveTo.Count > 0)
-                    {
-                        player.MoveToPoint();
-                    }
-                    else
-                    {
-                        player.Move();
-                    }
-                }
-                else if (obj is Enemy enemy)
-                {
-                    enemy.LocksTarget(Player);
-                    enemy.ShorteningDistanceToTarget(Player);
-                    enemy.ShootAtTarget(Player);
-                }
-                else if (obj is Projectile projectile)
+                obj.TakeAction();
+                if (obj is Projectile projectile)
                 {
                     GameObject? collider = projectile.CheckCollisions(GameObjects, GetProjectiles());
                     if (collider != null && collider != projectile.Shooter)
@@ -122,11 +116,7 @@ namespace MilitaryShooter
 
         public void CleanGameObjects()
         {
-            if (_gameObjectsToClean.Count > 0)
-            {
-                GameObjects.RemoveAll(o => _gameObjectsToClean.Contains(o));
-                _gameObjectsToClean.Clear();
-            }
+            GameObjects.RemoveAll(o => o.IsExpired);
         }
 
         public void SpawnCharacters()
@@ -162,7 +152,7 @@ namespace MilitaryShooter
 
         private void RemoveGameObject(GameObject gameObject)
         {
-            _gameObjectsToClean.Add(gameObject);
+            gameObject.IsExpired = true;
             TriggerRemoveModel?.Invoke(gameObject);
         }
 

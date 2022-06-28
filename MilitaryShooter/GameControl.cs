@@ -5,7 +5,7 @@ namespace MilitaryShooter
 {
     internal static class GameControl
     {
-        public static void KeyDown(MainWindow window, Player player, KeyEventArgs e)
+        public static void KeyDown(Player player, KeyEventArgs e)
         {
             switch (e.Key)
             {
@@ -38,18 +38,11 @@ namespace MilitaryShooter
                     break;
 
                 case Key.Escape:
-                    if (window.GameMenu.Visibility != Visibility.Visible)
-                    {
-                        _ = window.GameMenuOpen();
-                    }
-                    else
-                    {
-                        _ = window.GameMenuClose();
-                    }
+                    player.SwitchGameMenu();
                     break;
 
                 case Key.Space:
-                    _ = window.InGamePauseSwitch();
+                    player.SwitchGamePause();
                     break;
             }
         }

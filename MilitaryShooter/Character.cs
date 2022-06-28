@@ -86,19 +86,19 @@ namespace MilitaryShooter
 
         public void ShootROF()
         {
-            if (!Stopwatch.IsRunning)
-            {
-                Shoot();
-                Stopwatch.Start();
-            }
             if (Stopwatch.ElapsedMilliseconds >= RateOfFire)
             {
                 Stopwatch.Stop();
                 Stopwatch.Reset();
             }
+            if (!Stopwatch.IsRunning)
+            {
+                Shoot();
+                Stopwatch.Start();
+            }
         }
 
-        public void LocksTarget(Character target)
+        public void LocksTarget(GameObject target)
         {
             SetAim(target.CenterPosition);
             Rotate();

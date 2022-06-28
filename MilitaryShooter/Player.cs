@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 
 namespace MilitaryShooter
 {
@@ -9,6 +10,8 @@ namespace MilitaryShooter
         public bool MoveUp { get; set; }
         public bool MoveDown { get; set; }
 
+        public event Action? SwitchedGamePause;
+        public event Action? SwitchedGameMenu;
         public Player()
         {
             Name = "PlayerOne";
@@ -98,6 +101,28 @@ namespace MilitaryShooter
             {
                 PositionLT = (PositionLT.X, PositionLT.Y + Speed);
             }
+        }
+
+        public override void TakeAction()
+{
+            if (PointsToMoveTo.Count > 0)
+{
+                MoveToPoint();
+            }
+            else
+{
+                Move();
+            }
+        }
+
+        public void SwitchGamePause()
+        {
+            SwitchedGamePause?.Invoke();
+        }
+
+        public void SwitchGameMenu()
+        {
+            SwitchedGameMenu?.Invoke();
         }
     }
 }
