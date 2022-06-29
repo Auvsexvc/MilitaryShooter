@@ -1,9 +1,9 @@
-﻿using System;
-using System.Numerics;
+﻿using MilitaryShooter.Interfaces;
+using System;
 
 namespace MilitaryShooter
 {
-    internal class Player : Character
+    internal class Player : Character, IPlayer
     {
         public bool MoveLeft { get; set; }
         public bool MoveRight { get; set; }
@@ -11,7 +11,9 @@ namespace MilitaryShooter
         public bool MoveDown { get; set; }
 
         public event Action? SwitchedGamePause;
+
         public event Action? SwitchedGameMenu;
+
         public Player()
         {
             Name = "PlayerOne";
@@ -104,13 +106,13 @@ namespace MilitaryShooter
         }
 
         public override void TakeAction()
-{
+        {
             if (PointsToMoveTo.Count > 0)
-{
+            {
                 MoveToPoint();
             }
             else
-{
+            {
                 Move();
             }
         }

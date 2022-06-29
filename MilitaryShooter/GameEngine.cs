@@ -10,6 +10,7 @@ namespace MilitaryShooter
         private const int MaxDelay = 16;
         private const int MinDelay = 16;
 
+        public GameControl? Controls { get; }
         public static double ResX { get; private set; }
         public static double ResY { get; private set; }
         public Player? Player { get; set; }
@@ -19,7 +20,7 @@ namespace MilitaryShooter
 
         public bool IsGameStarted { get; private set; }
         public bool GameOver { get; private set; }
-        public bool Paused { get; set; }
+        public bool Paused { get; private set; }
 
         public event Action<Projectile, Character>? TriggerSpawnBulletModel;
 
@@ -38,8 +39,13 @@ namespace MilitaryShooter
         public event Action? DrawLinesOfFire;
 
         public event Action? UpdateLabels;
+
         public event Action? TriggerGamePause;
-        public event Action? TriggerGameMenu;
+
+        public event Action? TriggerGameUnpause;
+
+        public event Action? TriggerGameMenuOpen;
+        public event Action? TriggerGameMenuClose;
 
         public GameEngine()
         {
@@ -54,22 +60,50 @@ namespace MilitaryShooter
             GameObjects = new List<GameObject>();
             GameObject.OnCreate += OnGameObjectCreate;
             Player = new Player();
+            Controls = new GameControl(Player);
             Player.Death += OnPlayerDeath;
-            Player.SwitchedGamePause += OnGamePauseSwitched;
-            Player.SwitchedGameMenu += OnGameMenuSwitch;
+            Player.SwitchedGamePause += OnGamePauseSwitchedByPlayer;
+            Player.SwitchedGameMenu += OnGameMenuSwitchByPlayer;
+
             EnemyQueue = new EnemyQueue();
             CurrentEnemy = EnemyQueue.Clones(0);
             IsGameStarted = true;
         }
 
-        private void OnGameMenuSwitch()
+        private async void OnGameMenuSwitchByPlayer()
         {
-            TriggerGameMenu?.Invoke();
+            if (IsGameStarted)
+            {
+                if (Paused)
+                {
+                    TriggerGameMenuClose?.Invoke();
+                    TriggerGameUnpause?.Invoke();
+                    await UnPause();
+                }
+                else
+                {
+                    Pause();
+                    TriggerGamePause?.Invoke();
+                    TriggerGameMenuOpen?.Invoke();
+                }
+            }
         }
 
-        private void OnGamePauseSwitched()
+        private async void OnGamePauseSwitchedByPlayer()
         {
-            TriggerGamePause?.Invoke();
+            if (IsGameStarted)
+            {
+                if (Paused)
+                {
+                    TriggerGameUnpause?.Invoke();
+                    await UnPause();
+                }
+                else
+                {
+                    Pause();
+                    TriggerGamePause?.Invoke();
+                }
+            }
         }
 
         public async Task GameLoop()
@@ -93,24 +127,6 @@ namespace MilitaryShooter
             {
                 GameObject obj = GameObjects[i];
                 obj.TakeAction();
-                if (obj is Projectile projectile)
-                {
-                    GameObject? collider = projectile.CheckCollisions(GameObjects, GetProjectiles());
-                    if (collider != null && collider != projectile.Shooter)
-                    {
-                        collider.TakeDamage(projectile.Damage);
-                        RemoveGameObject(obj);
-                    }
-                    else
-                    {
-                        projectile.MoveToPoint();
-                    }
-                }
-
-                if (obj.IsExpired)
-                {
-                    RemoveGameObject(obj);
-                }
             }
         }
 
@@ -146,13 +162,13 @@ namespace MilitaryShooter
 
         private void OnGameObjectCreate(GameObject gameObject)
         {
+            gameObject.TriggerRemoveObject += RemoveGameObject;
             GameObjects.Add(gameObject);
             TriggerSpawn?.Invoke(gameObject);
         }
 
         private void RemoveGameObject(GameObject gameObject)
         {
-            gameObject.IsExpired = true;
             TriggerRemoveModel?.Invoke(gameObject);
         }
 
@@ -161,9 +177,10 @@ namespace MilitaryShooter
             Paused = true;
         }
 
-        public void UnPause()
+        public async Task UnPause()
         {
             Paused = false;
+            await GameLoop();
         }
 
         public void Reset()

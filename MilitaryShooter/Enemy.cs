@@ -45,7 +45,7 @@ namespace MilitaryShooter
 
         public void ShootAtTarget(GameObject target)
         {
-            LocksTarget(target);
+            AimAt(target.CenterPosition);
             if (IsTargetInTheRangeOfFire(target))
             {
                 ShootROF();
@@ -54,7 +54,7 @@ namespace MilitaryShooter
 
         public void ShorteningDistanceToTarget(GameObject target)
         {
-            LocksTarget(target);
+            AimAt(target.CenterPosition);
             if (!IsTargetInTheRangeOfView(target))
             {
                 (double X, double Y) maxRangePointTowardTarget = MaxRangePointTowardTarget(this.CenterPosition, target.CenterPosition, RangeOfView);
@@ -65,7 +65,7 @@ namespace MilitaryShooter
         public override void TakeAction()
         {
             GameObject target = SetNearestTarget();
-            LocksTarget(target);
+            AimAt(target.CenterPosition);
             ShorteningDistanceToTarget(target);
             ShootAtTarget(target);
         }

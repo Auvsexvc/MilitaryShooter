@@ -18,6 +18,7 @@ namespace MilitaryShooter
     public partial class MainWindow : Window
     {
         private GameEngine _gameEngine;
+
         private readonly List<Shape> _shapesToRemove;
         private readonly DoubleAnimation _fadeOutAnimation;
         private readonly DoubleAnimation _fadeInAnimation;
@@ -55,8 +56,10 @@ namespace MilitaryShooter
             _gameEngine.TriggerSpawnModel += SpawnGameObject;
             _gameEngine.TriggerRemoveModel += RemoveModel;
             _gameEngine.TriggerPlayerDeath += OnPlayerDeath;
-            _gameEngine.TriggerGamePause += InGamePauseSwitch;
-            _gameEngine.TriggerGameMenu += OnGameMenuSwitched;
+            _gameEngine.TriggerGamePause += OnGamePaused;
+            _gameEngine.TriggerGameUnpause += OnGameUnpaused;
+            _gameEngine.TriggerGameMenuOpen += GameMenuOpen;
+            _gameEngine.TriggerGameMenuClose += GameMenuClose;
             _gameEngine.SpawnCharacters();
             SpawnLabels();
             await _gameEngine.GameLoop();
@@ -78,9 +81,9 @@ namespace MilitaryShooter
             Canvas.SetRight(healthLabel, 0);
         }
 
-        private async void GameWindow_Loaded(object sender, RoutedEventArgs e)
+        private void GameWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            await GameMenuOpen();
+            GameMenuOpen();
         }
 
         private void UpdateLabels()
@@ -143,68 +146,27 @@ namespace MilitaryShooter
 
         private void GameCanvas_KeyDown(object sender, KeyEventArgs e)
         {
-            if (_gameEngine.Player != null)
-                GameControl.KeyDown(_gameEngine.Player, e);
+            _gameEngine.Controls?.KeyDown(sender, e);
         }
 
         private void GameCanvas_KeyUp(object sender, KeyEventArgs e)
         {
-            if (_gameEngine.Player != null)
-                GameControl.KeyUp(_gameEngine.Player, e);
+            _gameEngine.Controls?.KeyUp(sender, e);
         }
 
         private void GameCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (_gameEngine.Player != null)
-            {
-                switch (e.ChangedButton)
-                {
-                    case MouseButton.Left:
-                        _gameEngine.Player.ShootROF();
-                        break;
-
-                    case MouseButton.Middle:
-                        break;
-
-                    case MouseButton.Right:
-                        Point position = e.GetPosition((IInputElement)sender);
-                        _gameEngine.Player.SetPath((position.X, position.Y));
-                        break;
-
-                    case MouseButton.XButton1:
-
-                        break;
-
-                    case MouseButton.XButton2:
-
-                        break;
-
-                    default:
-                        break;
-                }
-            }
+            _gameEngine.Controls?.MouseDown(sender, e);
         }
 
         private void GameCanvas_MouseMoveHandler(object sender, MouseEventArgs e)
         {
-            Point position = e.GetPosition((IInputElement)sender);
-            if (_gameEngine.IsGameStarted && _gameEngine.Player != null)
-            {
-                _gameEngine.Player.SetAim((position.X, position.Y));
-                _gameEngine.Player.Rotate();
-            }
+            _gameEngine.Controls?.MouseMove(sender, e);
         }
 
         private void GameMenu_Restart_Button(object sender, RoutedEventArgs e)
         {
-            if (_gameEngine.IsGameStarted)
-            {
-                _gameEngine.Reset();
-            }
-            else
-            {
-                OnGameRestarted();
-            }
+            OnGameRestarted();
         }
 
         private void GameMenu_Quit_Button(object sender, RoutedEventArgs e)
@@ -224,19 +186,7 @@ namespace MilitaryShooter
             _shapesToRemove.Clear();
         }
 
-        private async void OnGameMenuSwitched()
-        {
-            if (GameMenu.Visibility != Visibility.Visible)
-            {
-                await GameMenuOpen();
-            }
-            else
-            {
-                await GameMenuClose();
-            }
-        }
-
-        public async Task GameMenuOpen()
+        public async void GameMenuOpen()
         {
             if (_gameEngine.GameOver)
             {
@@ -245,7 +195,6 @@ namespace MilitaryShooter
 
             if (_gameEngine.IsGameStarted)
             {
-                _gameEngine.Pause();
                 Restart_Button.Content = "Restart";
                 Continue_Button.IsEnabled = true;
                 Continue_Button.Background = new SolidColorBrush(Color.FromArgb(123, 225, 219, 158));
@@ -255,49 +204,38 @@ namespace MilitaryShooter
                 Restart_Button.Content = "New";
                 Continue_Button.IsEnabled = false;
             }
-            await TransitionToGameMenu();
+            await TransitionTo(GameMenu);
         }
 
-        public async Task GameMenuClose()
+        public async void GameMenuClose()
         {
+            GameCanvas.Focus();
             await TransitionToGameCanvas(GameMenu);
-            if (_gameEngine.IsGameStarted)
-            {
-                _gameEngine.UnPause();
-                GameCanvas.Focus();
-                await _gameEngine.GameLoop();
-            }
         }
 
-        public async void InGamePauseSwitch()
+        public async void OnGameUnpaused()
         {
-            if (_gameEngine.IsGameStarted)
-            {
-                if (_gameEngine.Paused)
-                {
-                    await TransitionToGameCanvas(GamePauseMask);
-                    GameCanvas.Focus();
-                    _gameEngine.UnPause();
-                    await _gameEngine.GameLoop();
-                }
-                else
-                {
-                    GamePauseMask.Focus();
-                    _gameEngine.Pause();
-                    await TransitionTo(GamePauseMask);
-                }
-            }
+            await TransitionToGameCanvas(GamePauseMask);
+            GameCanvas.Focus();
+        }
+
+        public async void OnGamePaused()
+        {
+            GamePauseMask.Focus();
+            await TransitionTo(GamePauseMask);
+            _gameEngine.Pause();
         }
 
         private async void OnGameRestarted()
         {
             await TransitionToGameCanvas(GameMenu);
+            OnGameUnpaused();
             await SetUpGame();
         }
 
-        public async void OnPlayerDeath()
+        public void OnPlayerDeath()
         {
-            await GameMenuOpen();
+            GameMenuOpen();
         }
 
         private async Task TransitionTo(UIElement element)
@@ -309,11 +247,6 @@ namespace MilitaryShooter
         {
             await FadeOut(element);
             element.Visibility = Visibility.Hidden;
-        }
-
-        private async Task TransitionToGameMenu()
-        {
-            await FadeIn(GameMenu);
         }
 
         private async Task FadeOut(UIElement e)
@@ -334,7 +267,9 @@ namespace MilitaryShooter
         {
             if (_gameEngine.IsGameStarted)
             {
-                await GameMenuClose();
+                GameMenuClose();
+                OnGameUnpaused();
+                await _gameEngine.UnPause();
             }
         }
     }

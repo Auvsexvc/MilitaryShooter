@@ -1,72 +1,115 @@
-﻿using System.Windows;
+﻿using MilitaryShooter.Interfaces;
+using System.Windows;
 using System.Windows.Input;
 
 namespace MilitaryShooter
 {
-    internal static class GameControl
+    internal class GameControl
     {
-        public static void KeyDown(Player player, KeyEventArgs e)
+        private readonly IPlayer _player;
+
+        public GameControl(IPlayer player)
+        {
+            _player = player;
+        }
+
+        public void KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.Key)
             {
                 case Key.A:
-                    player.MoveLeft = true;
-                    player.PointsToMoveTo.Clear();
+                    _player.MoveLeft = true;
+                    _player.ClearWaypoints();
                     break;
 
                 case Key.D:
-                    player.MoveRight = true;
-                    player.PointsToMoveTo.Clear();
+                    _player.MoveRight = true;
+                    _player.ClearWaypoints();
                     break;
 
                 case Key.W:
-                    player.MoveUp = true;
-                    player.PointsToMoveTo.Clear();
+                    _player.MoveUp = true;
+                    _player.ClearWaypoints();
                     break;
 
                 case Key.S:
-                    player.MoveDown = true;
-                    player.PointsToMoveTo.Clear();
+                    _player.MoveDown = true;
+                    _player.ClearWaypoints();
                     break;
 
                 case Key.F:
-                    player.SwitchLaserTargeting();
+                    _player.SwitchLaserTargeting();
                     break;
 
                 case Key.G:
-                    player.ThrowGrenade();
+                    _player.ThrowGrenade();
                     break;
 
                 case Key.Escape:
-                    player.SwitchGameMenu();
+                    _player.SwitchGameMenu();
                     break;
 
                 case Key.Space:
-                    player.SwitchGamePause();
+                    _player.SwitchGamePause();
                     break;
             }
         }
 
-        public static void KeyUp(Player player, KeyEventArgs e)
+        public void KeyUp(object sender, KeyEventArgs e)
         {
             switch (e.Key)
             {
                 case Key.A:
-                    player.MoveLeft = false;
+                    _player.MoveLeft = false;
                     break;
 
                 case Key.D:
-                    player.MoveRight = false;
+                    _player.MoveRight = false;
                     break;
 
                 case Key.W:
-                    player.MoveUp = false;
+                    _player.MoveUp = false;
                     break;
 
                 case Key.S:
-                    player.MoveDown = false;
+                    _player.MoveDown = false;
                     break;
             }
+        }
+
+        public void MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            switch (e.ChangedButton)
+            {
+                case MouseButton.Left:
+                    _player.ShootROF();
+                    break;
+
+                case MouseButton.Middle:
+                    break;
+
+                case MouseButton.Right:
+                    Point position = e.GetPosition((IInputElement)sender);
+                    _player.SetWaypoint((position.X, position.Y));
+                    break;
+
+                case MouseButton.XButton1:
+
+                    break;
+
+                case MouseButton.XButton2:
+
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        public void MouseMove(object sender, MouseEventArgs e)
+        {
+            Point position = e.GetPosition((IInputElement)sender);
+            _player.AimAt((position.X, position.Y));
         }
     }
 }

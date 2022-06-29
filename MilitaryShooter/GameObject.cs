@@ -23,6 +23,7 @@ namespace MilitaryShooter
         public bool IsExpired { get; set; }
 
         public static event Action<GameObject>? OnCreate;
+        public event Action<GameObject>? TriggerRemoveObject;
 
         public abstract void MoveToPoint();
         public abstract void TakeAction();
@@ -66,6 +67,22 @@ namespace MilitaryShooter
         public virtual void TakeDamage(double damage)
         {
             Health -= (int)damage;
+        }
+
+        public List<Projectile> GetProjectiles()
+        {
+            return _gameObjects.OfType<Projectile>().ToList();
+        }
+
+        public List<Character> GetCharacters()
+        {
+            return _gameObjects.OfType<Character>().ToList();
+        }
+
+        protected void RemoveGameObject()
+        {
+            IsExpired = true;
+            TriggerRemoveObject?.Invoke(this);
         }
     }
 }

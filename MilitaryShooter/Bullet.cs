@@ -33,7 +33,7 @@
             }
             else
             {
-                IsExpired = true;
+                RemoveGameObject();
             }
         }
 
@@ -43,11 +43,6 @@
             Trail = (Trail.W * 4, Trail.H * 2);
             Speed *= (1 - 0.15);
             _spray = (_spray.x * 2, _spray.y * 2);
-        }
-
-        public override void TakeAction()
-        {
-
         }
     }
 }

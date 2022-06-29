@@ -59,7 +59,7 @@ namespace MilitaryShooter
             return angle;
         }
 
-        public void SetAim((double X, double Y) aim)
+        protected void SetAim((double X, double Y) aim)
         {
             Aim = (aim.X > GameEngine.ResX ? GameEngine.ResX : aim.X, aim.Y > GameEngine.ResY ? GameEngine.ResY : aim.Y);
         }
@@ -98,13 +98,13 @@ namespace MilitaryShooter
             }
         }
 
-        public void LocksTarget(GameObject target)
+        public void AimAt((double, double) target)
         {
-            SetAim(target.CenterPosition);
+            SetAim(target);
             Rotate();
         }
 
-        internal void ThrowGrenade()
+        public void ThrowGrenade()
         {
             if (Rotate())
             {
@@ -118,7 +118,7 @@ namespace MilitaryShooter
             }
         }
 
-        public bool Rotate()
+        protected bool Rotate()
         {
             CurrentAngle %= 360;
             if ((Angle - RotationSpeed) > CurrentAngle)
@@ -192,7 +192,7 @@ namespace MilitaryShooter
             return (CenterPosition.X + aPrim, CenterPosition.Y + bPrim);
         }
 
-        protected static double DistanceMeter((double X, double Y) source, (double X, double Y) target) =>
+        private static double DistanceMeter((double X, double Y) source, (double X, double Y) target) =>
             Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
 
         public override void MoveToPoint()
@@ -225,35 +225,25 @@ namespace MilitaryShooter
             PositionLT = d;
         }
 
-        public void MoveToCharacter(Character target)
-        {
-            (double x, double y) d = Displacement(PositionLT, target.CenterPosition);
-
-            if (IsMoveOutOfBounds(d))
-            {
-                return;
-            }
-            PositionLT = d;
-        }
-
-        public void SetPath((double, double) p)
+        public void SetWaypoint((double, double) p)
         {
             PointsToMoveTo.Clear();
             PointsToMoveTo.Add(p);
         }
 
-        public bool IsMoveOutOfBounds((double X, double Y) valueTuple) =>
+        public void ClearWaypoints()
+        {
+            PointsToMoveTo.Clear();
+        }
+
+        protected bool IsMoveOutOfBounds((double X, double Y) valueTuple) =>
             valueTuple.X < 0 || valueTuple.X > GameEngine.ResX - Width || (valueTuple.Y < 0 || valueTuple.Y > GameEngine.ResY - Height);
 
-        public bool IsTargetInTheRangeOfView(GameObject gameObject)
-        {
-            return Math.Sqrt(Math.Pow(gameObject.CenterPosition.X - CenterPosition.X, 2) + Math.Pow(gameObject.CenterPosition.Y - CenterPosition.Y, 2)) <= RangeOfView;
-        }
+        protected bool IsTargetInTheRangeOfView(GameObject gameObject) =>
+            Math.Sqrt(Math.Pow(gameObject.CenterPosition.X - CenterPosition.X, 2) + Math.Pow(gameObject.CenterPosition.Y - CenterPosition.Y, 2)) <= RangeOfView;
 
-        public bool IsTargetInTheRangeOfFire(GameObject gameObject)
-        {
-            return Math.Sqrt(Math.Pow(gameObject.CenterPosition.X - CenterPosition.X, 2) + Math.Pow(gameObject.CenterPosition.Y - CenterPosition.Y, 2)) <= RangeOfFire;
-        }
+        protected bool IsTargetInTheRangeOfFire(GameObject gameObject) =>
+            Math.Sqrt(Math.Pow(gameObject.CenterPosition.X - CenterPosition.X, 2) + Math.Pow(gameObject.CenterPosition.Y - CenterPosition.Y, 2)) <= RangeOfFire;
 
         public override void TakeDamage(double damage)
         {
@@ -264,9 +254,7 @@ namespace MilitaryShooter
             }
         }
 
-        private bool IsKilled()
-        {
-            return Health <= 0;
-        }
+        private bool IsKilled() =>
+            Health <= 0;
     }
 }

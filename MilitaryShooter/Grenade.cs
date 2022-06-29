@@ -85,12 +85,8 @@ namespace MilitaryShooter
             }
             else
             {
-                IsExpired = true;
+                RemoveGameObject();
             }
-        }
-
-        public override void TakeAction()
-        {
         }
     }
 }

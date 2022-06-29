@@ -45,5 +45,19 @@ namespace MilitaryShooter
 
         protected static double DistanceMeter((double X, double Y) source, (double X, double Y) target) =>
             Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
+
+        public override void TakeAction()
+        {
+            GameObject? collider = CheckCollisions(_gameObjects, GetProjectiles());
+            if (collider != null && collider != Shooter)
+            {
+                collider.TakeDamage(Damage);
+                RemoveGameObject();
+            }
+            else
+            {
+                MoveToPoint();
+            }
+        }
     }
 }
