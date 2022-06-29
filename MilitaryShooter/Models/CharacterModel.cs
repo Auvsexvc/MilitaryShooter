@@ -53,8 +53,9 @@ namespace MilitaryShooter.Models
         {
             foreach (Shape element in Shapes)
             {
+                Character character = (Character)GameObject;
                 TransformGroup transformGroup = new();
-                RotateTransform rotateTransform = GameObject is Player ? new(GameObject.CurrentAngle) : new(GameObject.Angle);
+                RotateTransform rotateTransform = new(character.CurrentAngle);
                 transformGroup.Children.Add(rotateTransform);
                 element.RenderTransform = transformGroup;
             }

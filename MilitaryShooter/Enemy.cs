@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Documents;
 
 namespace MilitaryShooter
 {
@@ -16,7 +14,7 @@ namespace MilitaryShooter
             Health = GameStatic.rand.Next(25, 201);
             RangeOfFire = DefaultRangeOfFire;
             RateOfFire += 500;
-            Laser = false;
+            LaserAssistance = false;
         }
 
         public Enemy(Character character) : this()
@@ -34,6 +32,14 @@ namespace MilitaryShooter
             SetAim(character.CenterPosition);
         }
 
+        public override void Update()
+        {
+            GameObject target = SetNearestTarget();
+            AimAt(target.CenterPosition);
+            ShorteningDistanceToTarget(target);
+            ShootAtTarget(target);
+        }
+
         public object Clone()
         {
             var clone = (Enemy)MemberwiseClone();
@@ -43,7 +49,7 @@ namespace MilitaryShooter
             return clone;
         }
 
-        public void ShootAtTarget(GameObject target)
+        private void ShootAtTarget(GameObject target)
         {
             AimAt(target.CenterPosition);
             if (IsTargetInTheRangeOfFire(target))
@@ -52,7 +58,7 @@ namespace MilitaryShooter
             }
         }
 
-        public void ShorteningDistanceToTarget(GameObject target)
+        private void ShorteningDistanceToTarget(GameObject target)
         {
             AimAt(target.CenterPosition);
             if (!IsTargetInTheRangeOfView(target))
@@ -62,17 +68,9 @@ namespace MilitaryShooter
             }
         }
 
-        public override void TakeAction()
-        {
-            GameObject target = SetNearestTarget();
-            AimAt(target.CenterPosition);
-            ShorteningDistanceToTarget(target);
-            ShootAtTarget(target);
-        }
-
         private GameObject SetNearestTarget()
         {
-            return _gameObjects.Last(o => o is Player);
+            return GetGameObjects().Where(o => o is Character && o != this).OrderBy(o => DistanceMeter(CenterPosition, o.CenterPosition)).ThenByDescending(o => o.GetType().Name).First();
         }
     }
 }

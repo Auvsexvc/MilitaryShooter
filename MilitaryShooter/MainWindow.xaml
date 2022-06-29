@@ -34,11 +34,36 @@
                            Margin="48" />
             </StackPanel>
         </Grid>
+        <Grid Name="GameSettings"
+              Focusable="True"
+              Background="#CC000000"
+              Opacity="0.6"
+              Visibility="Hidden">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center">
+                <Button Name="AlternativeMovement_Button"
+                        Content="Enable Alternative Movement"
+                        Foreground="White"
+                        Background="DimGray"
+                        Margin="0,20,0,0"
+                        Padding="5"
+                        FontSize="24"
+                        MaxWidth="200"
+                        Click="GameSettings_AlternativeMovement_Button" />
+                <Button Name="BackToGameMenu_Button"
+                        Content="Back To Game Menu"
+                        Foreground="White"
+                        Background="DimGray"
+                        Margin="0,20,0,0"
+                        Padding="5"
+                        FontSize="24"
+                        MaxWidth="200"
+                        Click="GameSettings_BackToGameMenu_Button" />
+            </StackPanel>
+        </Grid>
         <Grid Name="GameMenu"
               Focusable="True"
               Background="#CC000000"
-              Grid.RowSpan="2"
-              Grid.ColumnSpan="3"
               Opacity="0.6"
               Visibility="Hidden">
             <StackPanel HorizontalAlignment="Center"
@@ -67,6 +92,15 @@
                         FontSize="24"
                         MaxWidth="200"
                         Click="GameMenu_Restart_Button" />
+                <Button Name="Settings_Button"
+                        Content="Settings"
+                        Foreground="White"
+                        Background="DimGray"
+                        Margin="0,20,0,0"
+                        Padding="5"
+                        FontSize="24"
+                        MaxWidth="200"
+                        Click="GameMenu_Settings_Button" />
                 <Button Name="Quit_Button"
                         Content="Quit"
                         Foreground="White"

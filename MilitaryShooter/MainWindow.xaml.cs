@@ -18,28 +18,13 @@ namespace MilitaryShooter
     public partial class MainWindow : Window
     {
         private GameEngine _gameEngine;
-
         private readonly List<Shape> _shapesToRemove;
-        private readonly DoubleAnimation _fadeOutAnimation;
-        private readonly DoubleAnimation _fadeInAnimation;
 
         public MainWindow()
         {
             InitializeComponent();
-            _shapesToRemove = new List<Shape>();
-            _fadeOutAnimation = new DoubleAnimation()
-            {
-                Duration = TimeSpan.FromMilliseconds(100),
-                From = 1,
-                To = 0
-            };
-            _fadeInAnimation = new()
-            {
-                Duration = TimeSpan.FromMilliseconds(100),
-                From = 0,
-                To = 1
-            };
             _gameEngine = new GameEngine();
+            _shapesToRemove = new List<Shape>();
         }
 
         private async Task SetUpGame()
@@ -47,11 +32,11 @@ namespace MilitaryShooter
             GameCanvas.Children.Clear();
             GameCanvas.Background = new SolidColorBrush(Color.FromArgb(255, 28, 28, 28));
             GameCanvas.Focus();
+            _gameEngine = default!;
             _gameEngine = new GameEngine(GameCanvas.Width, GameCanvas.Height);
             _gameEngine.DrawObjects += DrawObjects;
             _gameEngine.DrawLinesOfFire += DrawLinesOfFire;
             _gameEngine.UpdateLabels += UpdateLabels;
-            _gameEngine.GameRestarted += OnGameRestarted;
             _gameEngine.TriggerSpawnBulletModel += SpawnProjectile;
             _gameEngine.TriggerSpawnModel += SpawnGameObject;
             _gameEngine.TriggerRemoveModel += RemoveModel;
@@ -65,56 +50,16 @@ namespace MilitaryShooter
             await _gameEngine.GameLoop();
         }
 
-        private void SpawnLabels()
+        private void DrawLinesOfFire()
         {
-            Label healthLabel = new()
+            foreach (Character character in _gameEngine.GetCharacters().Where(c => c.LaserAssistance))
             {
-                Name = "Health",
-                Content = $"Health: {_gameEngine.Player!.Health}",
-                Tag = "Player",
-                FontSize = 18,
-                FontWeight = FontWeights.Bold,
-                Foreground = Brushes.White,
-                Margin = new Thickness(0, 10, 20, 0),
-            };
-            GameCanvas.Children.Add(healthLabel);
-            Canvas.SetRight(healthLabel, 0);
-        }
-
-        private void GameWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            GameMenuOpen();
-        }
-
-        private void UpdateLabels()
-        {
-            foreach (Label label in GameCanvas.Children.OfType<Label>())
-            {
-                label.Content = $"{label.Name}: {_gameEngine.Player!.Health}";
-            }
-        }
-
-        private void SpawnProjectile(Projectile projectileObj, GameObject gameObject)
-        {
-            ModelFactory factory = new(projectileObj, gameObject);
-
-            foreach (UIElement element in factory.GameObjectModel.Shapes)
-            {
-                GameCanvas.Children.Add(element);
-                Canvas.SetLeft(element, gameObject.CenterPosition.X);
-                Canvas.SetTop(element, gameObject.CenterPosition.Y);
-            }
-        }
-
-        private void SpawnGameObject(GameObject gameObject)
-        {
-            ModelFactory factory = new(gameObject);
-
-            foreach (UIElement element in factory.GameObjectModel.Shapes)
-            {
-                GameCanvas.Children.Add(element);
-                Canvas.SetLeft(element, gameObject.PositionLT.X);
-                Canvas.SetTop(element, gameObject.PositionLT.Y);
+                foreach (GameObjectModel model in GameObjectModel.Models.OfType<LineOfFireModel>().Where(m => m.Guid == character.Guid))
+                {
+                    GameCanvas.Children.Remove(model.Shapes[0]);
+                }
+                GameObjectModel.Models.RemoveAll(m => m.GetType() == typeof(LineOfFireModel) && m.Guid == character.Guid);
+                GameCanvas.Children.Add(new LineOfFireModel(character).Shapes.FirstOrDefault());
             }
         }
 
@@ -131,32 +76,54 @@ namespace MilitaryShooter
             }
         }
 
-        private void DrawLinesOfFire()
+        private void GameCanvas_KeyDown(object sender, KeyEventArgs e)
         {
-            foreach (Character character in _gameEngine!.GetCharacters().Where(c => c.Laser))
-            {
-                foreach (GameObjectModel model in GameObjectModel.Models.OfType<LineOfFireModel>().Where(m => m.Guid == character.Guid))
-                {
-                    GameCanvas.Children.Remove(model.Shapes[0]);
-                }
-                GameObjectModel.Models.RemoveAll(m => m.GetType() == typeof(LineOfFireModel) && m.Guid == character.Guid);
-                GameCanvas.Children.Add(new LineOfFireModel(character).Shapes.FirstOrDefault());
-            }
+            _gameEngine.Controls?.KeyDown(sender, e);
         }
 
-        private void RemoveModel(GameObject gameObject)
+        private void GameCanvas_KeyUp(object sender, KeyEventArgs e)
         {
-            _shapesToRemove.AddRange(GameObjectModel.Models.Where(gom => gom.Guid == gameObject.Guid).SelectMany(gom => gom.Shapes).ToList());
-            GameObjectModel.Models.RemoveAll(model => model.Guid.ToString() == gameObject.Guid.ToString());
-
-            foreach (var item in _shapesToRemove)
-            {
-                GameCanvas.Children.Remove(item);
-            }
-            _shapesToRemove.Clear();
+            _gameEngine.Controls?.KeyUp(sender, e);
         }
 
-        public async void GameMenuOpen()
+        private void GameCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            _gameEngine.Controls?.MouseDown(sender, e);
+        }
+
+        private void GameCanvas_MouseMoveHandler(object sender, MouseEventArgs e)
+        {
+            _gameEngine.Controls?.MouseMove(sender, e);
+        }
+
+        private void GameMenu_Continue_Button(object sender, RoutedEventArgs e)
+        {
+            _gameEngine.Controls?.ContinueGame();
+        }
+
+        private void GameMenu_Quit_Button(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private async void GameMenu_Restart_Button(object sender, RoutedEventArgs e)
+        {
+            await RestartGame();
+        }
+
+        private async void GameMenu_Settings_Button(object sender, RoutedEventArgs e)
+        {
+            await TransitionFrom(GameMenu);
+            await TransitionTo(GameSettings);
+        }
+
+        private async void GameMenuClose()
+        {
+            GameCanvas.Focus();
+            await TransitionFrom(GameMenu, 500);
+        }
+
+        private async void GameMenuOpen()
         {
             if (_gameEngine.GameOver)
             {
@@ -181,94 +148,142 @@ namespace MilitaryShooter
             await TransitionTo(GameMenu);
         }
 
-        public async void GameMenuClose()
+        private void GameSettings_AlternativeMovement_Button(object sender, RoutedEventArgs e)
         {
-            GameCanvas.Focus();
-            await TransitionToGameCanvas(GameMenu);
         }
 
-        public async void OnGameUnpaused()
+        private async void GameSettings_BackToGameMenu_Button(object sender, RoutedEventArgs e)
         {
-            await TransitionToGameCanvas(GamePauseMask);
-            GameCanvas.Focus();
+            await TransitionFrom(GameSettings);
+            await TransitionTo(GameMenu);
         }
 
-        public async void OnGamePaused()
+        private void GameWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            GameMenuOpen();
+        }
+
+        private async void OnGamePaused()
         {
             GamePauseMask.Focus();
             await TransitionTo(GamePauseMask);
         }
 
-        private async void OnGameRestarted()
+        private async void OnGameUnpaused()
         {
-            await TransitionToGameCanvas(GameMenu);
-            OnGameUnpaused();
-            await SetUpGame();
+            await TransitionFrom(GamePauseMask);
+            GameCanvas.Focus();
         }
 
-        public void OnPlayerDeath()
+        private void OnPlayerDeath()
         {
             GameMenuOpen();
         }
 
-        private async Task TransitionTo(UIElement element)
+        private void RemoveModel(GameObject gameObject)
         {
-            await FadeIn(element);
+            _shapesToRemove.AddRange(GameObjectModel.Models.Where(gom => gom.Guid == gameObject.Guid).SelectMany(gom => gom.Shapes).ToList());
+            GameObjectModel.Models.RemoveAll(model => model.Guid.ToString() == gameObject.Guid.ToString());
+
+            foreach (var item in _shapesToRemove)
+            {
+                GameCanvas.Children.Remove(item);
+            }
+            _shapesToRemove.Clear();
         }
 
-        private async Task TransitionToGameCanvas(UIElement element)
+        private async Task RestartGame()
         {
-            await FadeOut(element);
-            element.Visibility = Visibility.Hidden;
+             _gameEngine.Reset();
+            await TransitionFrom(GameMenu);
+            await TransitionFrom(GamePauseMask);
+            await SetUpGame();
+            await TransitionTo(GameCanvas);
         }
 
-        private async Task FadeOut(UIElement e)
+        private void SpawnGameObject(GameObject gameObject)
         {
-            e.BeginAnimation(OpacityProperty, _fadeOutAnimation);
-            await Task.Delay(_fadeOutAnimation.Duration.TimeSpan);
-            e.Visibility = Visibility.Hidden;
+            ModelFactory factory = new(gameObject);
+
+            foreach (UIElement element in factory.GameObjectModel.Shapes)
+            {
+                GameCanvas.Children.Add(element);
+                Canvas.SetLeft(element, gameObject.PositionLT.X);
+                Canvas.SetTop(element, gameObject.PositionLT.Y);
+            }
         }
 
-        private async Task FadeIn(UIElement e)
+        private void SpawnLabels()
         {
-            e.BeginAnimation(OpacityProperty, _fadeInAnimation);
-            await Task.Delay(_fadeInAnimation.Duration.TimeSpan);
+            Label healthLabel = new()
+            {
+                Name = "Health",
+                Content = $"Health: {_gameEngine.Player!.Health}",
+                Tag = "Player",
+                FontSize = 18,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.White,
+                Margin = new Thickness(0, 10, 20, 0),
+            };
+            GameCanvas.Children.Add(healthLabel);
+            Canvas.SetRight(healthLabel, 0);
+        }
+
+        private void SpawnProjectile(Projectile projectileObj, Character characterObj)
+        {
+            ModelFactory factory = new(projectileObj, characterObj);
+
+            foreach (UIElement element in factory.GameObjectModel.Shapes)
+            {
+                GameCanvas.Children.Add(element);
+                Canvas.SetLeft(element, characterObj.CenterPosition.X);
+                Canvas.SetTop(element, characterObj.CenterPosition.Y);
+            }
+        }
+
+        private static async Task TransitionFadeIn(UIElement e, int t)
+        {
+            DoubleAnimation fadeInAnimation = new()
+            {
+                Duration = TimeSpan.FromMilliseconds(t),
+                From = 0,
+                To = 1
+            };
+            e.BeginAnimation(OpacityProperty, fadeInAnimation);
+            await Task.Delay(fadeInAnimation.Duration.TimeSpan);
             e.Visibility = Visibility.Visible;
         }
 
-        private void GameMenu_Continue_Button(object sender, RoutedEventArgs e)
+        private static async Task TransitionFadeOut(UIElement e, int t)
         {
-            _gameEngine.Controls?.ContinueGame();
+            DoubleAnimation fadeOutAnimation = new DoubleAnimation()
+            {
+                Duration = TimeSpan.FromMilliseconds(t),
+                From = 1,
+                To = 0
+            };
+            e.BeginAnimation(OpacityProperty, fadeOutAnimation);
+            await Task.Delay(fadeOutAnimation.Duration.TimeSpan);
+            e.Visibility = Visibility.Hidden;
         }
 
-        private void GameCanvas_KeyDown(object sender, KeyEventArgs e)
+        private static async Task TransitionFrom(UIElement e, int t = 100)
         {
-            _gameEngine.Controls?.KeyDown(sender, e);
+            await TransitionFadeOut(e, t);
+            e.Visibility = Visibility.Hidden;
         }
 
-        private void GameCanvas_KeyUp(object sender, KeyEventArgs e)
+        private static async Task TransitionTo(UIElement e, int t = 100)
         {
-            _gameEngine.Controls?.KeyUp(sender, e);
+            await TransitionFadeIn(e, t);
         }
 
-        private void GameCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+        private void UpdateLabels()
         {
-            _gameEngine.Controls?.MouseDown(sender, e);
-        }
-
-        private void GameCanvas_MouseMoveHandler(object sender, MouseEventArgs e)
-        {
-            _gameEngine.Controls?.MouseMove(sender, e);
-        }
-
-        private void GameMenu_Restart_Button(object sender, RoutedEventArgs e)
-        {
-            OnGameRestarted();
-        }
-
-        private void GameMenu_Quit_Button(object sender, RoutedEventArgs e)
-        {
-            Close();
+            foreach (Label label in GameCanvas.Children.OfType<Label>())
+            {
+                label.Content = $"{label.Name}: {_gameEngine.Player!.Health}";
+            }
         }
     }
 }

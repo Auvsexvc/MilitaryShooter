@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
 namespace MilitaryShooter.Models
 {
     internal class GrenadeModel : GameObjectModel
     {
-        private const string UriString = "Assets/grenade.png";
-
-        public GrenadeModel(Grenade grenadeObj, GameObject gameObject) : base(grenadeObj)
+        public GrenadeModel(Grenade grenadeObj, Character characterObj) : base(grenadeObj)
         {
             TranslateTransform moveTransform = new(grenadeObj.Width / 2, grenadeObj.Height / 2);
-            RotateTransform rotateTransform = new(gameObject.Angle);
+            RotateTransform rotateTransform = new(characterObj.Angle);
             grenadeObj.TriggerModelResize += TransfromExplosion;
 
             Shapes = new List<Shape>()
@@ -25,10 +21,9 @@ namespace MilitaryShooter.Models
                     Tag = "Grenade",
                     Height = grenadeObj.Height,
                     Width = grenadeObj.Width,
-                    RenderTransformOrigin = new Point(0.5, 0.5),
-                    Fill = new ImageBrush() { ImageSource = new BitmapImage(new Uri(UriString, UriKind.Relative)) },
-                    Stroke = Brushes.Black,
-                    StrokeThickness = 0.1,
+                    Stroke = Brushes.Red,
+                    StrokeThickness = 1,
+                    RenderTransformOrigin = new Point(0.5, 0.5)
                 }
             };
 
@@ -46,7 +41,7 @@ namespace MilitaryShooter.Models
             foreach (Shape element in Shapes)
             {
                 TransformGroup transformGroup = new();
-                ScaleTransform sizeTransform = new ScaleTransform(grenadeOBJ.CurrentBlastRadius / 10, grenadeOBJ.CurrentBlastRadius / 10, 0.5, 0.5);
+                ScaleTransform sizeTransform = new ScaleTransform(grenadeOBJ.CurrentBlastRadius / grenadeOBJ.Width, grenadeOBJ.CurrentBlastRadius / grenadeOBJ.Height);
                 transformGroup.Children.Add(sizeTransform);
                 element.RenderTransform = transformGroup;
             }

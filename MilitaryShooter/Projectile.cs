@@ -4,21 +4,33 @@ namespace MilitaryShooter
 {
     internal abstract class Projectile : GameObject
     {
-        public (double X, double Y) Source { get; set; }
-        public (double X, double Y) Target { get; set; }
         public double Damage { get; protected set; }
+        public double DistanceCovered { get; set; }
         public double Range { get; set; }
         public Character? Shooter { get; set; }
-        public double DistanceCovered { get; set; }
+        public (double X, double Y) Source { get; set; }
+        public (double X, double Y) Target { get; set; }
 
+        public override void Update()
+        {
+            GameObject? collider = CheckCollisions();
+            if (collider != null && collider != Shooter && collider is not Projectile)
+            {
+                collider.TakeDamage(Damage);
+                RemoveGameObject();
+            }
+            else
+            {
+                MoveToPoint();
+            }
+        }
 
-
-        public override void MoveToPoint()
+        protected virtual void MoveToPoint()
         {
             Displacement(Source, Target);
         }
 
-        protected override (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)
+        protected (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)
         {
             double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
             double a = target.X - source.X;
@@ -41,23 +53,6 @@ namespace MilitaryShooter
             double bPrim = (b * cPrim) / c;
 
             return (CenterPosition.X + aPrim, CenterPosition.Y + bPrim);
-        }
-
-        protected static double DistanceMeter((double X, double Y) source, (double X, double Y) target) =>
-            Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
-
-        public override void TakeAction()
-        {
-            GameObject? collider = CheckCollisions(_gameObjects, GetProjectiles());
-            if (collider != null && collider != Shooter)
-            {
-                collider.TakeDamage(Damage);
-                RemoveGameObject();
-            }
-            else
-            {
-                MoveToPoint();
-            }
         }
     }
 }

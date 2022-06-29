@@ -14,15 +14,17 @@ namespace MilitaryShooter
         protected const double DefaultRotationMultiplier = 1.5;
 
         public (double X, double Y) Aim { get; set; }
-        public override double Angle => GetAngle();
+        public double Angle => GetAngle();
+        public double CurrentAngle { get; set; }
+        public bool LaserAssistance { get; protected set; }
+        public double AimDistance => DistanceMeter(CenterPosition, Aim);
         public List<(double X, double Y)> PointsToMoveTo { get; set; }
         public double RotationSpeed => Speed * DefaultRotationMultiplier;
-        public double RangeOfView { get; protected set; }
+        public int BulletsFired { get; protected set; }
         public double RangeOfFire { get; protected set; }
-        public double AimDistance => DistanceMeter(CenterPosition, Aim);
-        public int BulletsFired { get; private set; }
+        public double RangeOfView { get; protected set; }
         public int RateOfFire { get; protected set; }
-        public bool Laser { get; protected set; }
+
         public Stopwatch Stopwatch { get; }
 
         public event Action<Character, Projectile>? FireBullet;
@@ -41,7 +43,7 @@ namespace MilitaryShooter
             RangeOfFire = DefaultRangeOfFire;
             PointsToMoveTo = new List<(double X, double Y)>();
             Stopwatch = new Stopwatch();
-            Laser = false;
+            LaserAssistance = false;
         }
 
         private double GetAngle()
@@ -62,11 +64,6 @@ namespace MilitaryShooter
         protected void SetAim((double X, double Y) aim)
         {
             Aim = (aim.X > GameEngine.ResX ? GameEngine.ResX : aim.X, aim.Y > GameEngine.ResY ? GameEngine.ResY : aim.Y);
-        }
-
-        public void SwitchLaserTargeting()
-        {
-            Laser = !Laser;
         }
 
         private void Shoot()
@@ -168,7 +165,7 @@ namespace MilitaryShooter
             }
         }
 
-        protected override (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)
+        protected (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)
         {
             double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
             double a = target.X - source.X;
@@ -180,22 +177,7 @@ namespace MilitaryShooter
             return (PositionLT.X + aPrim, PositionLT.Y + bPrim);
         }
 
-        public (double X, double Y) MaxRangePointTowardTarget((double X, double Y) source, (double X, double Y) target, double distance)
-        {
-            double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
-            double a = target.X - source.X;
-            double b = target.Y - source.Y;
-            double cPrim = distance;
-            double aPrim = (a * cPrim) / c;
-            double bPrim = (b * cPrim) / c;
-
-            return (CenterPosition.X + aPrim, CenterPosition.Y + bPrim);
-        }
-
-        private static double DistanceMeter((double X, double Y) source, (double X, double Y) target) =>
-            Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
-
-        public override void MoveToPoint()
+        public void MoveToPoint()
         {
             if (PointsToMoveTo.Count > 0)
             {
@@ -223,6 +205,18 @@ namespace MilitaryShooter
                 return;
             }
             PositionLT = d;
+        }
+
+        public (double X, double Y) MaxRangePointTowardTarget((double X, double Y) source, (double X, double Y) target, double distance)
+        {
+            double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
+            double a = target.X - source.X;
+            double b = target.Y - source.Y;
+            double cPrim = distance;
+            double aPrim = (a * cPrim) / c;
+            double bPrim = (b * cPrim) / c;
+
+            return (CenterPosition.X + aPrim, CenterPosition.Y + bPrim);
         }
 
         public void SetWaypoint((double, double) p)

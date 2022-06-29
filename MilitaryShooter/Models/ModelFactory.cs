@@ -16,7 +16,7 @@
             }
         }
 
-        public ModelFactory(Projectile projectile, GameObject gameObject)
+        public ModelFactory(Projectile projectile, Character gameObject)
         {
             if (projectile is Bullet bullet)
             {

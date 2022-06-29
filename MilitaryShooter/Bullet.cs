@@ -25,7 +25,7 @@
             _spray = (GameStatic.rand.Next(-DefaultSpray, DefaultSpray + 1), GameStatic.rand.Next(-DefaultSpray, DefaultSpray + 1));
         }
 
-        public override void MoveToPoint()
+        protected override void MoveToPoint()
         {
             if (!IsOutOfBounds())
             {

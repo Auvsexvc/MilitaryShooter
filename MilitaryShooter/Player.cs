@@ -5,26 +5,41 @@ namespace MilitaryShooter
 {
     internal class Player : Character, IPlayer
     {
+        public bool MoveDown { get; set; }
         public bool MoveLeft { get; set; }
         public bool MoveRight { get; set; }
         public bool MoveUp { get; set; }
-        public bool MoveDown { get; set; }
+        public bool AlternativeControls { get; }
 
-        public event Action? SwitchedGamePause;
+        public event Action? RestartedGame;
 
         public event Action? SwitchedGameMenu;
-        public event Action? RestartedGame;
+
+        public event Action? SwitchedGamePause;
 
         public Player()
         {
             Name = "PlayerOne";
             Speed = 6;
             PositionLT = (GameEngine.ResX / 2.0, GameEngine.ResY / 2.0);
-            Health = 100;
-            Laser = false;
+            Health = 500;
+            LaserAssistance = false;
+            AlternativeControls = false;
         }
 
-        public void Move()
+        public override void Update()
+        {
+            if (PointsToMoveTo.Count > 0)
+            {
+                MoveToPoint();
+            }
+            else
+            {
+                Move();
+            }
+        }
+
+        private void Move()
         {
             (double x, double y) = Displacement(PositionLT, Aim);
             double moveAngle = 0;
@@ -86,7 +101,7 @@ namespace MilitaryShooter
             Rotate();
         }
 
-        public void AltMove()
+        private void AltMove()
         {
             if (MoveLeft && PositionLT.X > 0)
             {
@@ -106,18 +121,6 @@ namespace MilitaryShooter
             }
         }
 
-        public override void TakeAction()
-        {
-            if (PointsToMoveTo.Count > 0)
-            {
-                MoveToPoint();
-            }
-            else
-            {
-                Move();
-            }
-        }
-
         public void SwitchGamePause()
         {
             SwitchedGamePause?.Invoke();
@@ -132,9 +135,15 @@ namespace MilitaryShooter
         {
             SwitchedGameMenu?.Invoke();
         }
+
         public void RestartGame()
         {
             RestartedGame?.Invoke();
+        }
+
+        public void SwitchLaserTargeting()
+        {
+            LaserAssistance = !LaserAssistance;
         }
     }
 }

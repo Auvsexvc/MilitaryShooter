@@ -7,12 +7,12 @@ namespace MilitaryShooter.Models
 {
     internal class BulletModel : GameObjectModel
     {
-        public BulletModel(Bullet bulletObj, GameObject gameObject) : base(bulletObj)
+        public BulletModel(Bullet bulletObj, Character characterObj) : base(bulletObj)
         {
             (double Width, double Height) = bulletObj.Trail;
             TranslateTransform trailMoveTransform = new(bulletObj.Width - Width, (bulletObj.Height / 2) - (Height / 2));
             TranslateTransform moveTransform = new(bulletObj.Width / 2, bulletObj.Height / 2);
-            RotateTransform rotateTransform = new(gameObject.Angle);
+            RotateTransform rotateTransform = new(characterObj.Angle);
 
             Shapes = new List<Shape>()
             {
