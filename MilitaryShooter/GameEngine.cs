@@ -64,6 +64,7 @@ namespace MilitaryShooter
             Player.Death += OnPlayerDeath;
             Player.SwitchedGamePause += OnGamePauseSwitchedByPlayer;
             Player.SwitchedGameMenu += OnGameMenuSwitchByPlayer;
+            Player.RestartedGame += Reset;
 
             EnemyQueue = new EnemyQueue();
             CurrentEnemy = EnemyQueue.Clones(0);
@@ -89,7 +90,7 @@ namespace MilitaryShooter
             }
         }
 
-        private async void OnGamePauseSwitchedByPlayer()
+        public async void OnGamePauseSwitchedByPlayer()
         {
             if (IsGameStarted)
             {
@@ -121,7 +122,7 @@ namespace MilitaryShooter
             }
         }
 
-        public void UpdateObjects()
+        private void UpdateObjects()
         {
             for (int i = 0; i < GameObjects.Count; i++)
             {
@@ -130,7 +131,7 @@ namespace MilitaryShooter
             }
         }
 
-        public void CleanGameObjects()
+        private void CleanGameObjects()
         {
             GameObjects.RemoveAll(o => o.IsExpired);
         }
@@ -172,12 +173,12 @@ namespace MilitaryShooter
             TriggerRemoveModel?.Invoke(gameObject);
         }
 
-        public void Pause()
+        private void Pause()
         {
             Paused = true;
         }
 
-        public async Task UnPause()
+        private async Task UnPause()
         {
             Paused = false;
             await GameLoop();

@@ -144,36 +144,6 @@ namespace MilitaryShooter
             }
         }
 
-        private void GameCanvas_KeyDown(object sender, KeyEventArgs e)
-        {
-            _gameEngine.Controls?.KeyDown(sender, e);
-        }
-
-        private void GameCanvas_KeyUp(object sender, KeyEventArgs e)
-        {
-            _gameEngine.Controls?.KeyUp(sender, e);
-        }
-
-        private void GameCanvas_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            _gameEngine.Controls?.MouseDown(sender, e);
-        }
-
-        private void GameCanvas_MouseMoveHandler(object sender, MouseEventArgs e)
-        {
-            _gameEngine.Controls?.MouseMove(sender, e);
-        }
-
-        private void GameMenu_Restart_Button(object sender, RoutedEventArgs e)
-        {
-            OnGameRestarted();
-        }
-
-        private void GameMenu_Quit_Button(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
-
         private void RemoveModel(GameObject gameObject)
         {
             _shapesToRemove.AddRange(GameObjectModel.Models.Where(gom => gom.Guid == gameObject.Guid).SelectMany(gom => gom.Shapes).ToList());
@@ -191,6 +161,10 @@ namespace MilitaryShooter
             if (_gameEngine.GameOver)
             {
                 GameMenuText.Text = "Game Over\nYou ve been killed.";
+            }
+            else
+            {
+                GameMenuText.Text = "Game Menu";
             }
 
             if (_gameEngine.IsGameStarted)
@@ -223,7 +197,6 @@ namespace MilitaryShooter
         {
             GamePauseMask.Focus();
             await TransitionTo(GamePauseMask);
-            _gameEngine.Pause();
         }
 
         private async void OnGameRestarted()
@@ -263,14 +236,39 @@ namespace MilitaryShooter
             e.Visibility = Visibility.Visible;
         }
 
-        private async void GameMenu_Continue_Button(object sender, RoutedEventArgs e)
+        private void GameMenu_Continue_Button(object sender, RoutedEventArgs e)
         {
-            if (_gameEngine.IsGameStarted)
-            {
-                GameMenuClose();
-                OnGameUnpaused();
-                await _gameEngine.UnPause();
-            }
+            _gameEngine.Controls?.ContinueGame();
+        }
+
+        private void GameCanvas_KeyDown(object sender, KeyEventArgs e)
+        {
+            _gameEngine.Controls?.KeyDown(sender, e);
+        }
+
+        private void GameCanvas_KeyUp(object sender, KeyEventArgs e)
+        {
+            _gameEngine.Controls?.KeyUp(sender, e);
+        }
+
+        private void GameCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            _gameEngine.Controls?.MouseDown(sender, e);
+        }
+
+        private void GameCanvas_MouseMoveHandler(object sender, MouseEventArgs e)
+        {
+            _gameEngine.Controls?.MouseMove(sender, e);
+        }
+
+        private void GameMenu_Restart_Button(object sender, RoutedEventArgs e)
+        {
+            OnGameRestarted();
+        }
+
+        private void GameMenu_Quit_Button(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

@@ -21,5 +21,7 @@ namespace MilitaryShooter.Interfaces
         void SetWaypoint((double, double) p);
         void AimAt((double, double) p);
         void ClearWaypoints();
+        void ContinueGame();
+        void RestartGame();
     }
 }

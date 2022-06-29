@@ -13,6 +13,7 @@ namespace MilitaryShooter
         public event Action? SwitchedGamePause;
 
         public event Action? SwitchedGameMenu;
+        public event Action? RestartedGame;
 
         public Player()
         {
@@ -125,6 +126,15 @@ namespace MilitaryShooter
         public void SwitchGameMenu()
         {
             SwitchedGameMenu?.Invoke();
+        }
+
+        public void ContinueGame()
+        {
+            SwitchedGameMenu?.Invoke();
+        }
+        public void RestartGame()
+        {
+            RestartedGame?.Invoke();
         }
     }
 }
