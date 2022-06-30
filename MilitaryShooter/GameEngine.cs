@@ -11,6 +11,9 @@ namespace MilitaryShooter
         private const int MaxDelay = 16;
         private const int MinDelay = 16;
 
+        private readonly ModelFactory _modelFactory;
+        private readonly ObjectFactory _objectFactory;
+
         public GameControl? Controls { get; }
         public Enemy? CurrentEnemy { get; }
         public EnemyQueue? EnemyQueue { get; }
@@ -22,50 +25,55 @@ namespace MilitaryShooter
         public Player? Player { get; set; }
         public static double ResX { get; private set; }
         public static double ResY { get; private set; }
+        public List<GameObject> GameObjects => GetGameObjects();
+        public List<GameObjectModel> Models => GetModels();
 
         public event Action? DrawLinesOfFire;
 
         public event Action? DrawObjects;
 
-        public event Action? TriggerGameMenuClose;
+        public event Action? CloseGameMenu;
 
-        public event Action? TriggerGameMenuOpen;
+        public event Action? OpenGameMenu;
 
-        public event Action? TriggerGamePause;
+        public event Action? PauseGame;
 
-        public event Action? TriggerGameUnpause;
+        public event Action? UnpauseGame;
 
-        public event Action? TriggerPlayerDeath;
+        public event Action? PlayerDeath;
 
-        public event Action<GameObject>? TriggerRemoveModel;
+        public event Action<GameObjectModel>? RemoveModel;
 
-        public event Action<GameObject>? TriggerSpawn;
+        public event Action<Projectile, GameObjectModel>? MakeProjectileModel;
 
-        public event Action<Projectile, Character>? TriggerSpawnBulletModel;
-
-        public event Action<Character>? TriggerSpawnModel;
+        public event Action<GameObjectModel>? MakeCharacterModel;
 
         public event Action? UpdateLabels;
 
         public GameEngine()
         {
             IsGameStarted = false;
+            _modelFactory = new();
+            _objectFactory = new();
         }
 
         public GameEngine(double resX, double resY)
         {
             ResX = resX;
             ResY = resY;
-            GameObject.OnCreate += OnGameObjectCreate;
 
-            Player = new Player();
-            Controls = new GameControl(Player);
+            _modelFactory = new();
+            _objectFactory = new();
+
+            Player = _objectFactory.Make(new Player());
             Player.Death += OnPlayerDeath;
             Player.SwitchedGamePause += OnGamePauseSwitchedByPlayer;
             Player.SwitchedGameMenu += OnGameMenuSwitchByPlayer;
-            Player.RestartedGame += Reset;
+            Player.RestartedGame += OnGameRestartedByPlayer;
 
-            EnemyQueue = new EnemyQueue();
+            Controls = new GameControl(Player);
+
+            EnemyQueue = new EnemyQueue(_objectFactory);
             CurrentEnemy = EnemyQueue.Clones(0);
             IsGameStarted = true;
             Paused = false;
@@ -83,11 +91,7 @@ namespace MilitaryShooter
                 int delay = Math.Max(MinDelay, MaxDelay);
                 await Task.Delay(delay);
 
-                DrawObjects!();
-                DrawLinesOfFire!();
-                UpdateObjects();
-                UpdateLabels!();
-                CleanGameObjects();
+                Update();
             }
         }
 
@@ -98,13 +102,18 @@ namespace MilitaryShooter
 
         public List<GameObject> GetGameObjects()
         {
-            return GameObject.GameObjects;
+            return _objectFactory.GameObjects;
         }
 
-        public void Reset()
+        public List<GameObjectModel> GetModels()
         {
-            GameObject.GameObjects.Clear();
-            GameObjectModel.Models.Clear();
+            return _modelFactory.GameObjectModels;
+        }
+
+        public void OnGameRestartedByPlayer()
+        {
+            _objectFactory.GameObjects.Clear();
+            _modelFactory.GameObjectModels.Clear();
         }
 
         public void SpawnCharacters()
@@ -121,23 +130,17 @@ namespace MilitaryShooter
             {
                 if (Paused)
                 {
-                    TriggerGameMenuClose?.Invoke();
-                    TriggerGameUnpause?.Invoke();
+                    CloseGameMenu?.Invoke();
+                    UnpauseGame?.Invoke();
                     await UnPause();
                 }
                 else
                 {
                     Pause();
-                    TriggerGamePause?.Invoke();
-                    TriggerGameMenuOpen?.Invoke();
+                    PauseGame?.Invoke();
+                    OpenGameMenu?.Invoke();
                 }
             }
-        }
-
-        private void OnGameObjectCreate(GameObject gameObject)
-        {
-            gameObject.TriggerRemoveObject += RemoveGameObject;
-            TriggerSpawn?.Invoke(gameObject);
         }
 
         private async void OnGamePauseSwitchedByPlayer()
@@ -146,13 +149,13 @@ namespace MilitaryShooter
             {
                 if (Paused)
                 {
-                    TriggerGameUnpause?.Invoke();
+                    UnpauseGame?.Invoke();
                     await UnPause();
                 }
                 else
                 {
                     Pause();
-                    TriggerGamePause?.Invoke();
+                    PauseGame?.Invoke();
                 }
             }
         }
@@ -162,7 +165,7 @@ namespace MilitaryShooter
             GameOver = true;
             Pause();
             IsGameStarted = false;
-            TriggerPlayerDeath?.Invoke();
+            PlayerDeath?.Invoke();
         }
 
         private void Pause()
@@ -172,12 +175,19 @@ namespace MilitaryShooter
 
         private void RemoveGameObject(GameObject gameObject)
         {
-            TriggerRemoveModel?.Invoke(gameObject);
+            _objectFactory.GameObjects.Remove(gameObject);
+            var modelToRemove = _modelFactory.GameObjectModels.Find(o => o.GameObject == gameObject);
+            if (modelToRemove != null)
+            {
+                RemoveModel?.Invoke(modelToRemove);
+                _modelFactory.GameObjectModels.Remove(modelToRemove);
+            }
         }
 
         private void Spawn(Character character)
         {
-            TriggerSpawnModel?.Invoke(character);
+            MakeCharacterModel?.Invoke(_modelFactory.ProduceModel(character));
+            character.TriggerRemoveObject += RemoveGameObject;
             character.FireBullet += SpawnProjectileFiredBy;
             character.UseGrenade += SpawnProjectileFiredBy;
         }
@@ -188,8 +198,8 @@ namespace MilitaryShooter
             {
                 newBullet.SetToTracerRound();
             }
-
-            TriggerSpawnBulletModel?.Invoke(projectile, character);
+            projectile.TriggerRemoveObject += RemoveGameObject;
+            MakeProjectileModel?.Invoke(projectile, _modelFactory.ProduceModel(projectile, character));
         }
 
         private async Task UnPause()
@@ -198,7 +208,16 @@ namespace MilitaryShooter
             await GameLoop();
         }
 
-        private void UpdateObjects()
+        private void Update()
+        {
+            UpdateGameObjects();
+            DrawObjects?.Invoke();
+            DrawLinesOfFire?.Invoke();
+            UpdateLabels?.Invoke();
+            CleanGameObjects();
+        }
+
+        private void UpdateGameObjects()
         {
             for (int i = 0; i < GetGameObjects().Count; i++)
             {

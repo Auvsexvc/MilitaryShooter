@@ -9,7 +9,7 @@ namespace MilitaryShooter
         public bool MoveLeft { get; set; }
         public bool MoveRight { get; set; }
         public bool MoveUp { get; set; }
-        public bool AlternativeControls { get; }
+        public bool AlternativeControls { get; set; }
 
         public event Action? RestartedGame;
 

@@ -2,16 +2,13 @@
 {
     internal class EnemyQueue
     {
+        private readonly ObjectFactory _objectFactory;
         public Enemy NextEnemy { get; private set; }
 
-        public EnemyQueue()
+        public EnemyQueue(ObjectFactory factory)
         {
-            NextEnemy = new Enemy();
-        }
-
-        public EnemyQueue(Character character)
-        {
-            NextEnemy = new Enemy(character);
+            _objectFactory = factory;
+            NextEnemy = _objectFactory.Make(new Enemy());
         }
 
         public Enemy GetAndUpdate()
@@ -19,7 +16,7 @@
             Enemy enemy = NextEnemy;
             do
             {
-                NextEnemy = new Enemy();
+                NextEnemy = _objectFactory.Make(new Enemy());
             }
             while (enemy.Guid == NextEnemy.Guid);
 
@@ -30,7 +27,7 @@
         {
             while (clones > 0)
             {
-                NextEnemy = new Enemy();
+                NextEnemy = _objectFactory.Make(new Enemy());
                 clones--;
             }
 

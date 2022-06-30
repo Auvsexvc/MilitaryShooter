@@ -7,8 +7,8 @@ namespace MilitaryShooter
 {
     internal class Grenade : Projectile
     {
-        private const double DefaultSpeed = 5;
-        private const double DefaultDamage = 5;
+        private const double DefaultSpeed = 8;
+        private const double DefaultDamage = 15;
         private const double DefaultWidth = 16;
         private const double DefaultHeight = 16;
         private const double DefaultRange = 200;
@@ -74,7 +74,7 @@ namespace MilitaryShooter
 
         private List<GameObject> CheckBlastCollisions()
         {
-            List<GameObject> retList = new List<GameObject>();
+            List<GameObject> retList = new();
             retList.AddRange(GetGameObjects().Where(obj => IsInBlastRadius(obj)));
 
             return retList;

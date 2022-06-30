@@ -19,9 +19,7 @@ namespace MilitaryShooter
 
         public double Speed { get; protected set; }
         public double Width { get; set; }
-        public static List<GameObject> GameObjects { get; set; } = new List<GameObject>();
-
-        public static event Action<GameObject>? OnCreate;
+        public ObjectFactory Factory { get; set; }
 
         public event Action<GameObject>? TriggerRemoveObject;
 
@@ -29,8 +27,7 @@ namespace MilitaryShooter
         {
             Guid = Guid.NewGuid();
             IsExpired = false;
-            GameObjects.Add(this);
-            OnCreate?.Invoke(this);
+            Factory = new ObjectFactory();
         }
 
         public virtual void TakeDamage(double damage)
@@ -52,7 +49,7 @@ namespace MilitaryShooter
 
         protected List<GameObject> GetGameObjects()
         {
-            return GameObjects;
+            return Factory.GameObjects;
         }
 
         protected virtual bool IntersectsWith(GameObject gameObject)

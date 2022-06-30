@@ -70,13 +70,13 @@ namespace MilitaryShooter
         {
             if (Rotate())
             {
-                FireBullet?.Invoke(this, new Bullet
+                FireBullet?.Invoke(this, Factory.Make(new Bullet
                 {
                     Target = Aim,
                     Source = CenterPosition,
                     PositionLT = CenterPosition,
                     Shooter = this
-                });
+                }));
                 BulletsFired++;
             }
         }
@@ -105,13 +105,13 @@ namespace MilitaryShooter
         {
             if (Rotate())
             {
-                UseGrenade?.Invoke(this, new Grenade
+                UseGrenade?.Invoke(this, Factory.Make(new Grenade
                 {
                     Target = Aim,
                     Source = CenterPosition,
                     PositionLT = CenterPosition,
                     Shooter = this
-                });
+                }));
             }
         }
 
