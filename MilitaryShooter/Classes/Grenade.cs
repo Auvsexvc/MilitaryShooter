@@ -11,7 +11,7 @@ namespace MilitaryShooter
         private const double DefaultDamage = 15;
         private const double DefaultWidth = 16;
         private const double DefaultHeight = 16;
-        private const double DefaultRange = 200;
+        private const double DefaultRange = 300;
         private const double DefaultBlastRadius = 300;
         private const double DefaultBlastSpeed = 50;
         private const int DefaultFuserTime = 5000;

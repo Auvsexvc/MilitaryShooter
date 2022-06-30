@@ -14,7 +14,7 @@ namespace MilitaryShooter.Models
             TranslateTransform moveTransform = new(bulletObj.Width / 2, bulletObj.Height / 2);
             RotateTransform rotateTransform = new(characterObj.Angle);
 
-            Shapes = new List<Shape>()
+            UIElements = new List<UIElement>()
             {
                 new Ellipse()
                 {
@@ -38,11 +38,11 @@ namespace MilitaryShooter.Models
                 }
             };
 
-            foreach (Shape shape in Shapes)
+            foreach (UIElement e in UIElements)
             {
                 TransformGroup transformGroup = new();
 
-                if (shape is Ellipse ellipse && (string)ellipse.Tag == "BulletTrail")
+                if (e is Ellipse ellipse && (string)ellipse.Tag == "BulletTrail")
                 {
                     transformGroup.Children.Add(trailMoveTransform);
                 }
@@ -51,7 +51,7 @@ namespace MilitaryShooter.Models
                     transformGroup.Children.Add(moveTransform);
                 }
                 transformGroup.Children.Add(rotateTransform);
-                shape.RenderTransform = transformGroup;
+                e.RenderTransform = transformGroup;
             }
         }
 

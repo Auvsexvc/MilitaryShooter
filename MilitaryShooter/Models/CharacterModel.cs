@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -14,7 +16,7 @@ namespace MilitaryShooter.Models
         public CharacterModel(Character character) : base(character)
         {
             TranslateTransform moveTransform = new(character.Width / 2, character.Height / 2);
-            Shapes = new List<Shape>()
+            UIElements = new List<UIElement>()
             {
                 new Ellipse()
                 {
@@ -38,22 +40,58 @@ namespace MilitaryShooter.Models
                     Stroke = character is Enemy ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.White),
                     StrokeThickness = 1.5,
                     RenderTransformOrigin = new Point(0.5, 0.5)
+                },
+                new Label()
+                {
+                    Uid=character.Guid.ToString(),
+                    Name = "Name",
+                    Content = character.Name,
+                    FontSize = 12,
+                    Foreground = Brushes.White,
+                    Width = 128,
+                    HorizontalContentAlignment = HorizontalAlignment.Center,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                },
+                new Label()
+                {
+                    Uid=character.Guid.ToString(),
+                    Name = "Health",
+                    Content = character.Health,
+                    FontSize = 8,
+                    Foreground = Brushes.White,
+                    Width = 128,
+                    HorizontalContentAlignment = HorizontalAlignment.Center,
+                    HorizontalAlignment = HorizontalAlignment.Center,
                 }
             };
 
-            foreach (Shape shape in Shapes)
+            foreach (UIElement e in UIElements)
             {
                 TransformGroup transformGroup = new();
-                transformGroup.Children.Add(moveTransform);
-                shape.RenderTransform = transformGroup;
+                if (e is Label lbl)
+                {
+                    if (lbl.Name == "Name")
+                    {
+                        transformGroup.Children.Add(new TranslateTransform(-character.Width * 1.5, -character.Height - 8));
+                    }
+                    else if (lbl.Name == "Health")
+                    {
+                        transformGroup.Children.Add(new TranslateTransform(-character.Width * 1.5, -character.Height + 8));
+                    }
+                }
+                else
+                {
+                    transformGroup.Children.Add(moveTransform);
+                }
+                e.RenderTransform = transformGroup;
             }
         }
 
         public override void Transform()
         {
-            foreach (Shape element in Shapes)
+            foreach (UIElement element in UIElements.Where(e => e.GetType() != typeof(Label)))
             {
-                Character character = (Character)GameObject;
+                Character character = (Character)GetGameObject();
                 TransformGroup transformGroup = new();
                 RotateTransform rotateTransform = new(character.CurrentAngle);
                 transformGroup.Children.Add(rotateTransform);

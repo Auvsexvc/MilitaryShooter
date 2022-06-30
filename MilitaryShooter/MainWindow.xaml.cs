@@ -31,8 +31,8 @@ namespace MilitaryShooter
             GameCanvas.Focus();
             _gameEngine = default!;
             _gameEngine = new GameEngine(GameCanvas.Width, GameCanvas.Height);
-            _gameEngine.DrawObjects += DrawObjects;
-            _gameEngine.DrawLinesOfFire += DrawLinesOfFire;
+            _gameEngine.UpdateModels += DrawObjects;
+            _gameEngine.UpdateLinesOfFire += DrawLinesOfFire;
             _gameEngine.UpdateLabels += OnUpdateLabels;
             _gameEngine.MakeProjectileModel += OnMakeProjectileModel;
             _gameEngine.MakeCharacterModel += OnMakeCharacterModel;
@@ -49,28 +49,29 @@ namespace MilitaryShooter
 
         private void DrawLinesOfFire()
         {
-            foreach (Character character in _gameEngine.GetCharacters())
+            foreach (CharacterModel characterModel in _gameEngine.GetModels().OfType<CharacterModel>())
             {
-                foreach (UIElement model in GameCanvas.Children.OfType<Line>().Where(m => m.Uid == character.Guid.ToString()).ToList())
+                foreach (UIElement e in GameCanvas.Children.OfType<Line>().Where(e => e.Uid == characterModel.Guid.ToString()).ToList())
                 {
-                    GameCanvas.Children.Remove(model);
+                    GameCanvas.Children.Remove(e);
                 }
+                Character character = (Character)characterModel.GetGameObject();
                 if (character.LaserAssistance)
                 {
-                    GameCanvas.Children.Add(new LineOfFireModel(character).Shapes.FirstOrDefault());
+                    GameCanvas.Children.Add(new LineOfFireModel(character).UIElements.FirstOrDefault());
                 }
             }
         }
 
         private void DrawObjects()
         {
-            foreach (GameObjectModel objectModel in _gameEngine.Models)
+            foreach (GameObjectModel objectModel in _gameEngine.GetModels())
             {
                 objectModel.Transform();
-                foreach (UIElement element in objectModel.Shapes)
+                foreach (UIElement e in objectModel.UIElements)
                 {
-                    Canvas.SetLeft(element, objectModel.GameObject.PositionLT.X);
-                    Canvas.SetTop(element, objectModel.GameObject.PositionLT.Y);
+                    Canvas.SetLeft(e, objectModel.GetGameObject().PositionLT.X);
+                    Canvas.SetTop(e, objectModel.GetGameObject().PositionLT.Y);
                 }
             }
         }
@@ -149,7 +150,7 @@ namespace MilitaryShooter
 
         private void GameSettings_AlternativeMovement_Button(object sender, RoutedEventArgs e)
         {
-            _gameEngine.Player!.AlternativeControls = true;
+            _gameEngine.Player!.AlternativeControls = !_gameEngine.Player.AlternativeControls;
         }
 
         private async void GameSettings_BackToGameMenu_Button(object sender, RoutedEventArgs e)
@@ -182,7 +183,7 @@ namespace MilitaryShooter
 
         private void OnRemoveModel(GameObjectModel model)
         {
-            foreach (UIElement e in model.Shapes)
+            foreach (UIElement e in model.UIElements)
             {
                 GameCanvas.Children.Remove(e);
             }
@@ -199,11 +200,11 @@ namespace MilitaryShooter
 
         private void OnMakeCharacterModel(GameObjectModel model)
         {
-            foreach (UIElement element in model.Shapes)
+            foreach (UIElement e in model.UIElements)
             {
-                GameCanvas.Children.Add(element);
-                Canvas.SetLeft(element, model.GameObject.PositionLT.X);
-                Canvas.SetTop(element, model.GameObject.PositionLT.Y);
+                GameCanvas.Children.Add(e);
+                Canvas.SetLeft(e, model.GetGameObject().PositionLT.X);
+                Canvas.SetTop(e, model.GetGameObject().PositionLT.Y);
             }
         }
 
@@ -211,25 +212,25 @@ namespace MilitaryShooter
         {
             Label healthLabel = new()
             {
-                Name = "Health",
+                Name = "CanvasHealth",
                 Content = $"Health: {_gameEngine.Player!.Health}",
-                Tag = "Player",
                 FontSize = 18,
                 FontWeight = FontWeights.Bold,
                 Foreground = Brushes.White,
                 Margin = new Thickness(0, 10, 20, 0),
             };
-            GameCanvas.Children.Add(healthLabel);
+            Status.Children.Add(healthLabel);
             Canvas.SetRight(healthLabel, 0);
         }
 
-        private void OnMakeProjectileModel(Projectile projectile, GameObjectModel model)
+        private void OnMakeProjectileModel(GameObjectModel model)
         {
-            foreach (UIElement element in model.Shapes)
+            foreach (UIElement e in model.UIElements)
             {
-                GameCanvas.Children.Add(element);
-                Canvas.SetLeft(element, projectile.Source.X);
-                Canvas.SetTop(element, projectile.Source.Y);
+                GameCanvas.Children.Add(e);
+                Projectile projectile = (Projectile)model.GetGameObject();
+                Canvas.SetLeft(e, projectile.Source.X);
+                Canvas.SetTop(e, projectile.Source.Y);
             }
         }
 
@@ -272,9 +273,35 @@ namespace MilitaryShooter
 
         private void OnUpdateLabels()
         {
-            foreach (Label label in GameCanvas.Children.OfType<Label>())
+            foreach (Label label in Status.Children.OfType<Label>())
             {
-                label.Content = $"{label.Name}: {_gameEngine.Player!.Health}";
+                switch (label.Name)
+                {
+                    case "CanvasHealth":
+                        {
+                            label.Content = $"{label.Name}: {_gameEngine.Player!.Health}";
+                            break;
+                        }
+                }
+            }
+            foreach (CharacterModel character in _gameEngine.GetModels().OfType<CharacterModel>())
+            {
+                foreach (Label characterLabel in character.UIElements.OfType<Label>())
+                {
+                    switch (characterLabel.Name)
+                    {
+                        case "Health":
+                            characterLabel.Content = $"{character.GetGameObject().Health}";
+                            break;
+
+                        case "Name":
+                            characterLabel.Content = $"{character.GetGameObject().Name}";
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
             }
         }
     }

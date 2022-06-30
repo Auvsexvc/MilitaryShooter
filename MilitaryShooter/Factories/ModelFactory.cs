@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using MilitaryShooter.Classes;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace MilitaryShooter.Models
@@ -14,26 +15,34 @@ namespace MilitaryShooter.Models
 
         public GameObjectModel ProduceModel(GameObject gameObject)
         {
-            if (gameObject is Character character)
+            switch (gameObject)
             {
-                GameObjectModels.Add(new CharacterModel(character));
-            }
-            else
-            {
-                GameObjectModels.Add(new CharacterModel((Character)gameObject));
+                case Character character:
+                    GameObjectModels.Add(new CharacterModel(character));
+                    break;
+                case Firearm firearm:
+                    GameObjectModels.Add(new FirearmModel(firearm));
+                    break;
+                case Upgrade upgrade:
+                    GameObjectModels.Add(new UpgradeModel(upgrade));
+                    break;
+                default:
+                    GameObjectModels.Add(new CharacterModel((Character)gameObject));
+                    break;
             }
             return GameObjectModels.Last();
         }
 
         public GameObjectModel ProduceModel(Projectile projectile, Character gameObject)
         {
-            if (projectile is Bullet bullet)
+            switch (projectile)
             {
-                GameObjectModels.Add(new BulletModel(bullet, gameObject));
-            }
-            else
-            {
-                GameObjectModels.Add(new GrenadeModel((Grenade)projectile, gameObject));
+                case Bullet bullet:
+                    GameObjectModels.Add(new BulletModel(bullet, gameObject));
+                    break;
+                default:
+                    GameObjectModels.Add(new GrenadeModel((Grenade)projectile, gameObject));
+                    break;
             }
             return GameObjectModels.Last();
         }

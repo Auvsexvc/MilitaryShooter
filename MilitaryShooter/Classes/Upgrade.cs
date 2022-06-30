@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MilitaryShooter
+namespace MilitaryShooter.Classes
 {
-    internal class Firearm : GameObject
+    internal class Upgrade : GameObject
     {
         public override void Update()
         {

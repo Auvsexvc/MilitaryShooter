@@ -16,6 +16,17 @@
                     MouseDown="GameCanvas_MouseDown"
                     KeyDown="GameCanvas_KeyDown"
                     KeyUp="GameCanvas_KeyUp">
+                <StackPanel Name="Status"
+                            HorizontalAlignment="Right"
+                            Canvas.Right="0"
+                            Canvas.Top="0"
+                            Margin="10,10,10,10"
+                            Background="BlueViolet"
+                            Opacity="0.5"
+                            Height="300"
+                            Width="300">
+                    
+                </StackPanel>
             </Canvas>
         </Viewbox>
         <Grid Name="GamePauseMask"

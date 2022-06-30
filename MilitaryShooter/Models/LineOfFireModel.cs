@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -8,7 +9,7 @@ namespace MilitaryShooter.Models
     {
         public LineOfFireModel(Character character) : base(character)
         {
-            Shapes = new List<Shape>()
+            UIElements = new List<UIElement>()
             {
                  new Line()
                     {

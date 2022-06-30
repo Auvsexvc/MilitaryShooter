@@ -35,7 +35,14 @@ namespace MilitaryShooter
             }
             else
             {
-                Move();
+                if (AlternativeControls)
+                {
+                    AltMove();
+                }
+                else
+                {
+                    Move();
+                }
             }
         }
 
@@ -119,6 +126,7 @@ namespace MilitaryShooter
             {
                 PositionLT = (PositionLT.X, PositionLT.Y + Speed);
             }
+            Rotate();
         }
 
         public void SwitchGamePause()

@@ -13,7 +13,7 @@ namespace MilitaryShooter.Models
             RotateTransform rotateTransform = new(characterObj.Angle);
             grenadeObj.TriggerModelResize += TransfromExplosion;
 
-            Shapes = new List<Shape>()
+            UIElements = new List<UIElement>()
             {
                 new Ellipse()
                 {
@@ -27,23 +27,23 @@ namespace MilitaryShooter.Models
                 }
             };
 
-            foreach (Shape shape in Shapes)
+            foreach (UIElement e in UIElements)
             {
                 TransformGroup transformGroup = new();
                 transformGroup.Children.Add(moveTransform);
                 transformGroup.Children.Add(rotateTransform);
-                shape.RenderTransform = transformGroup;
+                e.RenderTransform = transformGroup;
             }
         }
 
         private void TransfromExplosion(Grenade grenadeOBJ)
         {
-            foreach (Shape element in Shapes)
+            foreach (UIElement e in UIElements)
             {
                 TransformGroup transformGroup = new();
-                ScaleTransform sizeTransform = new ScaleTransform(grenadeOBJ.CurrentBlastRadius / grenadeOBJ.Width, grenadeOBJ.CurrentBlastRadius / grenadeOBJ.Height);
+                ScaleTransform sizeTransform = new(grenadeOBJ.CurrentBlastRadius / grenadeOBJ.Width, grenadeOBJ.CurrentBlastRadius / grenadeOBJ.Height);
                 transformGroup.Children.Add(sizeTransform);
-                element.RenderTransform = transformGroup;
+                e.RenderTransform = transformGroup;
             }
         }
 

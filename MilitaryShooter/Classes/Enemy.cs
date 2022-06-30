@@ -7,7 +7,7 @@ namespace MilitaryShooter
     {
         public Enemy()
         {
-            Name = "Enemy";
+            Name = $"Enemy__{Guid.ToString()[..4]}";
             Speed = GameStatic.rand.Next(1, 4) + GameStatic.rand.NextDouble();
             PositionLT = (GameStatic.rand.Next((int)Width, (int)GameEngine.ResX) - (int)Width, GameStatic.rand.Next((int)Height, (int)GameEngine.ResY) - (int)Height);
             SetAim((GameStatic.rand.Next(0, (int)GameEngine.ResX), GameStatic.rand.Next(0, (int)GameEngine.ResY)));

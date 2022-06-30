@@ -25,12 +25,10 @@ namespace MilitaryShooter
         public Player? Player { get; set; }
         public static double ResX { get; private set; }
         public static double ResY { get; private set; }
-        public List<GameObject> GameObjects => GetGameObjects();
-        public List<GameObjectModel> Models => GetModels();
 
-        public event Action? DrawLinesOfFire;
+        public event Action? UpdateLinesOfFire;
 
-        public event Action? DrawObjects;
+        public event Action? UpdateModels;
 
         public event Action? CloseGameMenu;
 
@@ -44,7 +42,7 @@ namespace MilitaryShooter
 
         public event Action<GameObjectModel>? RemoveModel;
 
-        public event Action<Projectile, GameObjectModel>? MakeProjectileModel;
+        public event Action<GameObjectModel>? MakeProjectileModel;
 
         public event Action<GameObjectModel>? MakeCharacterModel;
 
@@ -79,11 +77,6 @@ namespace MilitaryShooter
             Paused = false;
         }
 
-        private void CleanGameObjects()
-        {
-            GetGameObjects().RemoveAll(o => o.IsExpired);
-        }
-
         public async Task GameLoop()
         {
             while (!Paused && IsGameStarted)
@@ -93,16 +86,6 @@ namespace MilitaryShooter
 
                 Update();
             }
-        }
-
-        public List<Character> GetCharacters()
-        {
-            return GetGameObjects().OfType<Character>().ToList();
-        }
-
-        public List<GameObject> GetGameObjects()
-        {
-            return _objectFactory.GameObjects;
         }
 
         public List<GameObjectModel> GetModels()
@@ -122,6 +105,21 @@ namespace MilitaryShooter
             {
                 Spawn(character);
             }
+        }
+
+        private void CleanGameObjects()
+        {
+            GetGameObjects().RemoveAll(o => o.IsExpired);
+        }
+
+        private List<Character> GetCharacters()
+        {
+            return GetGameObjects().OfType<Character>().ToList();
+        }
+
+        private List<GameObject> GetGameObjects()
+        {
+            return _objectFactory.GameObjects;
         }
 
         private async void OnGameMenuSwitchByPlayer()
@@ -176,7 +174,7 @@ namespace MilitaryShooter
         private void RemoveGameObject(GameObject gameObject)
         {
             _objectFactory.GameObjects.Remove(gameObject);
-            var modelToRemove = _modelFactory.GameObjectModels.Find(o => o.GameObject == gameObject);
+            var modelToRemove = _modelFactory.GameObjectModels.Find(o => o.GetGameObject() == gameObject);
             if (modelToRemove != null)
             {
                 RemoveModel?.Invoke(modelToRemove);
@@ -199,7 +197,7 @@ namespace MilitaryShooter
                 newBullet.SetToTracerRound();
             }
             projectile.TriggerRemoveObject += RemoveGameObject;
-            MakeProjectileModel?.Invoke(projectile, _modelFactory.ProduceModel(projectile, character));
+            MakeProjectileModel?.Invoke(_modelFactory.ProduceModel(projectile, character));
         }
 
         private async Task UnPause()
@@ -211,8 +209,8 @@ namespace MilitaryShooter
         private void Update()
         {
             UpdateGameObjects();
-            DrawObjects?.Invoke();
-            DrawLinesOfFire?.Invoke();
+            UpdateModels?.Invoke();
+            UpdateLinesOfFire?.Invoke();
             UpdateLabels?.Invoke();
             CleanGameObjects();
         }
