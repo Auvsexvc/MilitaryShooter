@@ -27,7 +27,6 @@ namespace MilitaryShooter.Models
                     GameObjectModels.Add(new UpgradeModel(upgrade));
                     break;
                 default:
-                    GameObjectModels.Add(new CharacterModel((Character)gameObject));
                     break;
             }
             return GameObjectModels.Last();
@@ -40,8 +39,10 @@ namespace MilitaryShooter.Models
                 case Bullet bullet:
                     GameObjectModels.Add(new BulletModel(bullet, gameObject));
                     break;
+                case Grenade grenade:
+                    GameObjectModels.Add(new GrenadeModel(grenade, gameObject));
+                    break;
                 default:
-                    GameObjectModels.Add(new GrenadeModel((Grenade)projectile, gameObject));
                     break;
             }
             return GameObjectModels.Last();
