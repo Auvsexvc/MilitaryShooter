@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MilitaryShooter
+namespace MilitaryShooter.Classes
 {
     internal abstract class Projectile : GameObject
     {
@@ -25,19 +25,14 @@ namespace MilitaryShooter
             }
         }
 
-        protected virtual void MoveToPoint()
-        {
-            Displacement(Source, Target);
-        }
-
         protected (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)
         {
             double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
             double a = target.X - source.X;
             double b = target.Y - source.Y;
             double cPrim = Speed;
-            double aPrim = (a * cPrim) / c;
-            double bPrim = (b * cPrim) / c;
+            double aPrim = a * cPrim / c;
+            double bPrim = b * cPrim / c;
             DistanceCovered += cPrim;
 
             return PositionLT = (PositionLT.X + aPrim, PositionLT.Y + bPrim);
@@ -49,10 +44,15 @@ namespace MilitaryShooter
             double a = Target.X - Source.X;
             double b = Target.Y - Source.Y;
             double cPrim = Range;
-            double aPrim = (a * cPrim) / c;
-            double bPrim = (b * cPrim) / c;
+            double aPrim = a * cPrim / c;
+            double bPrim = b * cPrim / c;
 
             return (CenterPosition.X + aPrim, CenterPosition.Y + bPrim);
+        }
+
+        protected virtual void MoveToPoint()
+        {
+            Displacement(Source, Target);
         }
     }
 }

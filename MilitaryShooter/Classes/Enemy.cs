@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace MilitaryShooter
+namespace MilitaryShooter.Classes
 {
     internal class Enemy : Character, ICloneable
     {
@@ -32,14 +32,6 @@ namespace MilitaryShooter
             SetAim(character.CenterPosition);
         }
 
-        public override void Update()
-        {
-            GameObject target = SetNearestTarget();
-            AimAt(target.CenterPosition);
-            ShorteningDistanceToTarget(target);
-            ShootAtTarget(target);
-        }
-
         public object Clone()
         {
             var clone = (Enemy)MemberwiseClone();
@@ -47,6 +39,18 @@ namespace MilitaryShooter
             clone.PositionLT = (GameStatic.rand.Next(0, (int)GameEngine.ResX) - (Width / 2), GameStatic.rand.Next(0, (int)GameEngine.ResY) - (Height / 2));
 
             return clone;
+        }
+
+        public override void Update()
+        {
+            GameObject target = SetNearestTarget();
+            AimAt(target.CenterPosition);
+            ShorteningDistanceToTarget(target);
+            ShootAtTarget(target);
+        }
+        private GameObject SetNearestTarget()
+        {
+            return GetGameObjects().Where(o => o is Character && o != this).OrderBy(o => DistanceMeter(CenterPosition, o.CenterPosition)).ThenByDescending(o => o.GetType().Name).First();
         }
 
         private void ShootAtTarget(GameObject target)
@@ -63,14 +67,9 @@ namespace MilitaryShooter
             AimAt(target.CenterPosition);
             if (!IsTargetInTheRangeOfView(target))
             {
-                (double X, double Y) maxRangePointTowardTarget = MaxRangePointTowardTarget(this.CenterPosition, target.CenterPosition, RangeOfView);
+                (double X, double Y) maxRangePointTowardTarget = MaxRangePointTowardTarget(CenterPosition, target.CenterPosition, RangeOfView);
                 MoveToPoint(maxRangePointTowardTarget);
             }
-        }
-
-        private GameObject SetNearestTarget()
-        {
-            return GetGameObjects().Where(o => o is Character && o != this).OrderBy(o => DistanceMeter(CenterPosition, o.CenterPosition)).ThenByDescending(o => o.GetType().Name).First();
         }
     }
 }

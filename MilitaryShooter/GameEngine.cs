@@ -1,7 +1,8 @@
-﻿using MilitaryShooter.Models;
+﻿using MilitaryShooter.Classes;
+using MilitaryShooter.Factories;
+using MilitaryShooter.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace MilitaryShooter
@@ -13,40 +14,6 @@ namespace MilitaryShooter
 
         private readonly ModelFactory _modelFactory;
         private readonly ObjectFactory _objectFactory;
-
-        public GameControl? Controls { get; }
-        public Enemy? CurrentEnemy { get; }
-        public EnemyQueue? EnemyQueue { get; }
-
-        public bool GameOver { get; private set; }
-
-        public bool IsGameStarted { get; private set; }
-        public bool Paused { get; private set; }
-        public Player? Player { get; set; }
-        public static double ResX { get; private set; }
-        public static double ResY { get; private set; }
-
-        public event Action? UpdateLinesOfFire;
-
-        public event Action? UpdateModels;
-
-        public event Action? CloseGameMenu;
-
-        public event Action? OpenGameMenu;
-
-        public event Action? PauseGame;
-
-        public event Action? UnpauseGame;
-
-        public event Action? PlayerDeath;
-
-        public event Action<GameModel>? RemoveModel;
-
-        public event Action<GameModel>? MakeProjectileModel;
-
-        public event Action<GameModel>? MakeCharacterModel;
-
-        public event Action? UpdateLabels;
 
         public GameEngine()
         {
@@ -77,6 +44,39 @@ namespace MilitaryShooter
             Paused = false;
         }
 
+        public event Action? CloseGameMenu;
+
+        public event Action<GameModel>? MakeCharacterModel;
+
+        public event Action<GameModel>? MakeProjectileModel;
+
+        public event Action? OpenGameMenu;
+
+        public event Action? PauseGame;
+
+        public event Action? PlayerDeath;
+
+        public event Action<GameModel>? RemoveModel;
+
+        public event Action? UnpauseGame;
+
+        public event Action? UpdateLabels;
+
+        public event Action? UpdateLinesOfFire;
+
+        public event Action? UpdateModels;
+
+        public static double ResX { get; private set; }
+        public static double ResY { get; private set; }
+        public GameControl? Controls { get; }
+        public Enemy? CurrentEnemy { get; }
+        public EnemyQueue? EnemyQueue { get; }
+
+        public bool GameOver { get; private set; }
+
+        public bool IsGameStarted { get; private set; }
+        public bool Paused { get; private set; }
+        public Player? Player { get; set; }
         public async Task GameLoop()
         {
             while (!Paused && IsGameStarted)
@@ -91,6 +91,11 @@ namespace MilitaryShooter
         public List<GameModel> GetGameModels()
         {
             return _modelFactory.GetGameModels();
+        }
+
+        public List<GameObject> GetGameObjects()
+        {
+            return _objectFactory.GetGameObjects();
         }
 
         public void OnGameRestartedByPlayer()
@@ -116,11 +121,6 @@ namespace MilitaryShooter
         private List<Character> GetCharacters()
         {
             return _objectFactory.GetCharacters();
-        }
-
-        private List<GameObject> GetGameObjects()
-        {
-            return _objectFactory.GetGameObjects();
         }
 
         private async void OnGameMenuSwitchByPlayer()

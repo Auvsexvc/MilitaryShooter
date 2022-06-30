@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using MilitaryShooter.Classes;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;

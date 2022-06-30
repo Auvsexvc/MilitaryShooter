@@ -13,6 +13,11 @@ namespace MilitaryShooter
             _player = player;
         }
 
+        public void ContinueGame()
+        {
+            _player.ContinueGame();
+        }
+
         public void KeyDown(object sender, KeyEventArgs e)
         {
             switch (e.Key)
@@ -111,12 +116,6 @@ namespace MilitaryShooter
             Point position = e.GetPosition((IInputElement)sender);
             _player.AimAt((position.X, position.Y));
         }
-
-        public void ContinueGame()
-        {
-            _player.ContinueGame();
-        }
-
         public void RestartGame()
         {
             _player.RestartGame();

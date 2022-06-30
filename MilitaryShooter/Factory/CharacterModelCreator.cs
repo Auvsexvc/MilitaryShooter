@@ -1,9 +1,5 @@
-﻿using MilitaryShooter.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MilitaryShooter.Classes;
+using MilitaryShooter.Models;
 
 namespace MilitaryShooter.Factory
 {

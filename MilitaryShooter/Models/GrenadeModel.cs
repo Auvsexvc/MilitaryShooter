@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using MilitaryShooter.Classes;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -36,6 +37,10 @@ namespace MilitaryShooter.Models
             }
         }
 
+        public override void Transform()
+        {
+        }
+
         private void TransfromExplosion(Grenade grenadeOBJ)
         {
             foreach (UIElement e in UIElements)
@@ -45,10 +50,6 @@ namespace MilitaryShooter.Models
                 transformGroup.Children.Add(sizeTransform);
                 e.RenderTransform = transformGroup;
             }
-        }
-
-        public override void Transform()
-        {
         }
     }
 }

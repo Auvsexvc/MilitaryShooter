@@ -1,4 +1,5 @@
-﻿using MilitaryShooter.Models;
+﻿using MilitaryShooter.Classes;
+using MilitaryShooter.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,27 +25,41 @@ namespace MilitaryShooter
             _gameEngine = new GameEngine();
         }
 
-        private async Task SetUpGame()
+        private static async Task TransitionFadeIn(UIElement e, int t)
         {
-            GameCanvas.Children.Clear();
-            GameCanvas.Background = new SolidColorBrush(Color.FromArgb(255, 28, 28, 28));
-            GameCanvas.Focus();
-            _gameEngine = default!;
-            _gameEngine = new GameEngine(GameCanvas.Width, GameCanvas.Height);
-            _gameEngine.UpdateModels += DrawObjects;
-            _gameEngine.UpdateLinesOfFire += DrawLinesOfFire;
-            _gameEngine.UpdateLabels += OnUpdateLabels;
-            _gameEngine.MakeProjectileModel += OnMakeProjectileModel;
-            _gameEngine.MakeCharacterModel += OnMakeCharacterModel;
-            _gameEngine.RemoveModel += OnRemoveModel;
-            _gameEngine.PlayerDeath += OnPlayerDeath;
-            _gameEngine.PauseGame += OnGamePaused;
-            _gameEngine.UnpauseGame += OnGameUnpaused;
-            _gameEngine.OpenGameMenu += GameMenuOpen;
-            _gameEngine.CloseGameMenu += GameMenuClose;
-            _gameEngine.SpawnCharacters();
-            SpawnLabels();
-            await _gameEngine.GameLoop();
+            DoubleAnimation fadeInAnimation = new()
+            {
+                Duration = TimeSpan.FromMilliseconds(t),
+                From = 0,
+                To = 1
+            };
+            e.BeginAnimation(OpacityProperty, fadeInAnimation);
+            await Task.Delay(fadeInAnimation.Duration.TimeSpan);
+            e.Visibility = Visibility.Visible;
+        }
+
+        private static async Task TransitionFadeOut(UIElement e, int t)
+        {
+            DoubleAnimation fadeOutAnimation = new()
+            {
+                Duration = TimeSpan.FromMilliseconds(t),
+                From = 1,
+                To = 0
+            };
+            e.BeginAnimation(OpacityProperty, fadeOutAnimation);
+            await Task.Delay(fadeOutAnimation.Duration.TimeSpan);
+            e.Visibility = Visibility.Hidden;
+        }
+
+        private static async Task TransitionFrom(UIElement e, int t = 100)
+        {
+            await TransitionFadeOut(e, t);
+            e.Visibility = Visibility.Hidden;
+        }
+
+        private static async Task TransitionTo(UIElement e, int t = 100)
+        {
+            await TransitionFadeIn(e, t);
         }
 
         private void DrawLinesOfFire()
@@ -176,28 +191,6 @@ namespace MilitaryShooter
             GameCanvas.Focus();
         }
 
-        private void OnPlayerDeath()
-        {
-            GameMenuOpen();
-        }
-
-        private void OnRemoveModel(GameModel model)
-        {
-            foreach (UIElement e in model.UIElements)
-            {
-                GameCanvas.Children.Remove(e);
-            }
-        }
-
-        private async Task RestartGame()
-        {
-            _gameEngine.OnGameRestartedByPlayer();
-            await TransitionFrom(GameMenu);
-            await TransitionFrom(GamePauseMask);
-            await SetUpGame();
-            await TransitionTo(GameCanvas);
-        }
-
         private void OnMakeCharacterModel(GameModel model)
         {
             foreach (UIElement e in model.UIElements)
@@ -206,21 +199,6 @@ namespace MilitaryShooter
                 Canvas.SetLeft(e, model.GetGameObject().PositionLT.X);
                 Canvas.SetTop(e, model.GetGameObject().PositionLT.Y);
             }
-        }
-
-        private void SpawnLabels()
-        {
-            Label healthLabel = new()
-            {
-                Name = "CanvasHealth",
-                Content = $"Health: {_gameEngine.Player!.Health}",
-                FontSize = 18,
-                FontWeight = FontWeights.Bold,
-                Foreground = Brushes.White,
-                Margin = new Thickness(0, 10, 20, 0),
-            };
-            Status.Children.Add(healthLabel);
-            Canvas.SetRight(healthLabel, 0);
         }
 
         private void OnMakeProjectileModel(GameModel model)
@@ -234,41 +212,17 @@ namespace MilitaryShooter
             }
         }
 
-        private static async Task TransitionFadeIn(UIElement e, int t)
+        private void OnPlayerDeath()
         {
-            DoubleAnimation fadeInAnimation = new()
+            GameMenuOpen();
+        }
+
+        private void OnRemoveModel(GameModel model)
+        {
+            foreach (UIElement e in model.UIElements)
             {
-                Duration = TimeSpan.FromMilliseconds(t),
-                From = 0,
-                To = 1
-            };
-            e.BeginAnimation(OpacityProperty, fadeInAnimation);
-            await Task.Delay(fadeInAnimation.Duration.TimeSpan);
-            e.Visibility = Visibility.Visible;
-        }
-
-        private static async Task TransitionFadeOut(UIElement e, int t)
-        {
-            DoubleAnimation fadeOutAnimation = new()
-            {
-                Duration = TimeSpan.FromMilliseconds(t),
-                From = 1,
-                To = 0
-            };
-            e.BeginAnimation(OpacityProperty, fadeOutAnimation);
-            await Task.Delay(fadeOutAnimation.Duration.TimeSpan);
-            e.Visibility = Visibility.Hidden;
-        }
-
-        private static async Task TransitionFrom(UIElement e, int t = 100)
-        {
-            await TransitionFadeOut(e, t);
-            e.Visibility = Visibility.Hidden;
-        }
-
-        private static async Task TransitionTo(UIElement e, int t = 100)
-        {
-            await TransitionFadeIn(e, t);
+                GameCanvas.Children.Remove(e);
+            }
         }
 
         private void OnUpdateLabels()
@@ -303,6 +257,52 @@ namespace MilitaryShooter
                     }
                 }
             }
+        }
+
+        private async Task RestartGame()
+        {
+            _gameEngine.OnGameRestartedByPlayer();
+            await TransitionFrom(GameMenu);
+            await TransitionFrom(GamePauseMask);
+            await SetUpGame();
+            await TransitionTo(GameCanvas);
+        }
+
+        private async Task SetUpGame()
+        {
+            GameCanvas.Children.Clear();
+            GameCanvas.Background = new SolidColorBrush(Color.FromArgb(255, 28, 28, 28));
+            GameCanvas.Focus();
+            _gameEngine = default!;
+            _gameEngine = new GameEngine(GameCanvas.Width, GameCanvas.Height);
+            _gameEngine.UpdateModels += DrawObjects;
+            _gameEngine.UpdateLinesOfFire += DrawLinesOfFire;
+            _gameEngine.UpdateLabels += OnUpdateLabels;
+            _gameEngine.MakeProjectileModel += OnMakeProjectileModel;
+            _gameEngine.MakeCharacterModel += OnMakeCharacterModel;
+            _gameEngine.RemoveModel += OnRemoveModel;
+            _gameEngine.PlayerDeath += OnPlayerDeath;
+            _gameEngine.PauseGame += OnGamePaused;
+            _gameEngine.UnpauseGame += OnGameUnpaused;
+            _gameEngine.OpenGameMenu += GameMenuOpen;
+            _gameEngine.CloseGameMenu += GameMenuClose;
+            _gameEngine.SpawnCharacters();
+            SpawnLabels();
+            await _gameEngine.GameLoop();
+        }
+        private void SpawnLabels()
+        {
+            Label healthLabel = new()
+            {
+                Name = "CanvasHealth",
+                Content = $"Health: {_gameEngine.Player!.Health}",
+                FontSize = 18,
+                FontWeight = FontWeights.Bold,
+                Foreground = Brushes.White,
+                Margin = new Thickness(0, 10, 20, 0),
+            };
+            Status.Children.Add(healthLabel);
+            Canvas.SetRight(healthLabel, 0);
         }
     }
 }

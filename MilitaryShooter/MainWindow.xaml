@@ -25,7 +25,6 @@
                             Opacity="0.5"
                             Height="300"
                             Width="300">
-                    
                 </StackPanel>
             </Canvas>
         </Viewbox>

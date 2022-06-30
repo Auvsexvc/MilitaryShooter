@@ -1,4 +1,6 @@
-﻿namespace MilitaryShooter.Models
+﻿using MilitaryShooter.Classes;
+
+namespace MilitaryShooter.Models
 {
     internal class FirearmModel : GameModel
     {

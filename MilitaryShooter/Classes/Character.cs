@@ -2,37 +2,16 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace MilitaryShooter
+namespace MilitaryShooter.Classes
 {
     internal abstract class Character : GameObject
     {
-        private const double DefaultSpeed = 2.0;
-        private const double DefaultCharacterSide = 32;
-        protected const int DefaultRateOfFire = 1000;
-        protected const double DefaultRangeOfView = 500;
         protected const double DefaultRangeOfFire = 700;
+        protected const double DefaultRangeOfView = 500;
+        protected const int DefaultRateOfFire = 1000;
         protected const double DefaultRotationMultiplier = 1.5;
-
-        public (double X, double Y) Aim { get; set; }
-        public double Angle => GetAngle();
-        public double CurrentAngle { get; set; }
-        public bool LaserAssistance { get; protected set; }
-        public double AimDistance => DistanceMeter(CenterPosition, Aim);
-        public List<(double X, double Y)> PointsToMoveTo { get; set; }
-        public double RotationSpeed => Speed * DefaultRotationMultiplier;
-        public int BulletsFired { get; protected set; }
-        public double RangeOfFire { get; protected set; }
-        public double RangeOfView { get; protected set; }
-        public int RateOfFire { get; protected set; }
-
-        public Stopwatch Stopwatch { get; }
-
-        public event Action<Character, Projectile>? FireBullet;
-
-        public event Action<Character, Projectile>? UseGrenade;
-
-        public event Action? Death;
-
+        private const double DefaultCharacterSide = 32;
+        private const double DefaultSpeed = 2.0;
         protected Character()
         {
             Speed = DefaultSpeed;
@@ -46,135 +25,45 @@ namespace MilitaryShooter
             LaserAssistance = false;
         }
 
-        private double GetAngle()
-        {
-            double angle = Math.Atan((Aim.Y - CenterPosition.Y) / (Aim.X - CenterPosition.X)) * 180 / Math.PI;
-            if (Aim.X - CenterPosition.X < 0)
-            {
-                angle += 180;
-            }
-            else if (angle < 0)
-            {
-                angle = 360 + angle;
-            }
+        public event Action? Death;
 
-            return angle;
-        }
+        public event Action<Character, Projectile>? FireBullet;
 
-        protected void SetAim((double X, double Y) aim)
-        {
-            Aim = (aim.X > GameEngine.ResX ? GameEngine.ResX : aim.X, aim.Y > GameEngine.ResY ? GameEngine.ResY : aim.Y);
-        }
+        public event Action<Character, Projectile>? UseGrenade;
 
-        private void Shoot()
-        {
-            if (Rotate())
-            {
-                FireBullet?.Invoke(this, Factory.Make(new Bullet
-                {
-                    Target = Aim,
-                    Source = CenterPosition,
-                    PositionLT = CenterPosition,
-                    Shooter = this
-                }));
-                BulletsFired++;
-            }
-        }
-
-        public void ShootROF()
-        {
-            if (Stopwatch.ElapsedMilliseconds >= RateOfFire)
-            {
-                Stopwatch.Stop();
-                Stopwatch.Reset();
-            }
-            if (!Stopwatch.IsRunning)
-            {
-                Shoot();
-                Stopwatch.Start();
-            }
-        }
-
+        public (double X, double Y) Aim { get; set; }
+        public double AimDistance => DistanceMeter(CenterPosition, Aim);
+        public double Angle => GetAngle();
+        public int BulletsFired { get; protected set; }
+        public double CurrentAngle { get; set; }
+        public bool LaserAssistance { get; protected set; }
+        public List<(double X, double Y)> PointsToMoveTo { get; set; }
+        public double RangeOfFire { get; protected set; }
+        public double RangeOfView { get; protected set; }
+        public int RateOfFire { get; protected set; }
+        public double RotationSpeed => Speed * DefaultRotationMultiplier;
+        public Stopwatch Stopwatch { get; }
         public void AimAt((double, double) target)
         {
             SetAim(target);
             Rotate();
         }
 
-        public void ThrowGrenade()
+        public void ClearWaypoints()
         {
-            if (Rotate())
-            {
-                UseGrenade?.Invoke(this, Factory.Make(new Grenade
-                {
-                    Target = Aim,
-                    Source = CenterPosition,
-                    PositionLT = CenterPosition,
-                    Shooter = this
-                }));
-            }
+            PointsToMoveTo.Clear();
         }
 
-        protected bool Rotate()
-        {
-            CurrentAngle %= 360;
-            if ((Angle - RotationSpeed) > CurrentAngle)
-            {
-                if (Angle - CurrentAngle < 180)
-                {
-                    CurrentAngle += RotationSpeed;
-                    if (CurrentAngle >= 360)
-                    {
-                        CurrentAngle = 360 - CurrentAngle;
-                    }
-                }
-                else
-                {
-                    CurrentAngle -= RotationSpeed;
-                    if (CurrentAngle < 0)
-                    {
-                        CurrentAngle = 360 + CurrentAngle;
-                    }
-                }
-                return false;
-            }
-            else if ((Angle + RotationSpeed) < CurrentAngle)
-            {
-                if (CurrentAngle - Angle < 180)
-                {
-                    CurrentAngle -= RotationSpeed;
-                    if (CurrentAngle < 0)
-                    {
-                        CurrentAngle = 360 + CurrentAngle;
-                    }
-                }
-                else
-                {
-                    CurrentAngle += RotationSpeed;
-                    if (CurrentAngle >= 360)
-                    {
-                        CurrentAngle = 360 - CurrentAngle;
-                    }
-                }
-                return false;
-            }
-            else
-            {
-                CurrentAngle = Angle;
-                return true;
-            }
-        }
-
-        protected (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)
+        public (double X, double Y) MaxRangePointTowardTarget((double X, double Y) source, (double X, double Y) target, double distance)
         {
             double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
             double a = target.X - source.X;
             double b = target.Y - source.Y;
-            double cPrim = Speed;
-            double aPrim = (a * cPrim) / c;
-            double bPrim = (b * cPrim) / c;
+            double cPrim = distance;
+            double aPrim = a * cPrim / c;
+            double bPrim = b * cPrim / c;
 
-            return (PositionLT.X + aPrim, PositionLT.Y + bPrim);
+            return (CenterPosition.X + aPrim, CenterPosition.Y + bPrim);
         }
 
         public void MoveToPoint()
@@ -207,37 +96,25 @@ namespace MilitaryShooter
             PositionLT = d;
         }
 
-        public (double X, double Y) MaxRangePointTowardTarget((double X, double Y) source, (double X, double Y) target, double distance)
-        {
-            double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
-            double a = target.X - source.X;
-            double b = target.Y - source.Y;
-            double cPrim = distance;
-            double aPrim = (a * cPrim) / c;
-            double bPrim = (b * cPrim) / c;
-
-            return (CenterPosition.X + aPrim, CenterPosition.Y + bPrim);
-        }
-
         public void SetWaypoint((double, double) p)
         {
             PointsToMoveTo.Clear();
             PointsToMoveTo.Add(p);
         }
 
-        public void ClearWaypoints()
+        public void ShootROF()
         {
-            PointsToMoveTo.Clear();
+            if (Stopwatch.ElapsedMilliseconds >= RateOfFire)
+            {
+                Stopwatch.Stop();
+                Stopwatch.Reset();
+            }
+            if (!Stopwatch.IsRunning)
+            {
+                Shoot();
+                Stopwatch.Start();
+            }
         }
-
-        protected bool IsMoveOutOfBounds((double X, double Y) valueTuple) =>
-            valueTuple.X < 0 || valueTuple.X > GameEngine.ResX - Width || (valueTuple.Y < 0 || valueTuple.Y > GameEngine.ResY - Height);
-
-        protected bool IsTargetInTheRangeOfView(GameObject gameObject) =>
-            Math.Sqrt(Math.Pow(gameObject.CenterPosition.X - CenterPosition.X, 2) + Math.Pow(gameObject.CenterPosition.Y - CenterPosition.Y, 2)) <= RangeOfView;
-
-        protected bool IsTargetInTheRangeOfFire(GameObject gameObject) =>
-            Math.Sqrt(Math.Pow(gameObject.CenterPosition.X - CenterPosition.X, 2) + Math.Pow(gameObject.CenterPosition.Y - CenterPosition.Y, 2)) <= RangeOfFire;
 
         public override void TakeDamage(double damage)
         {
@@ -248,7 +125,126 @@ namespace MilitaryShooter
             }
         }
 
+        public void ThrowGrenade()
+        {
+            if (Rotate())
+            {
+                UseGrenade?.Invoke(this, Factory.Make(new Grenade
+                {
+                    Target = Aim,
+                    Source = CenterPosition,
+                    PositionLT = CenterPosition,
+                    Shooter = this
+                }));
+            }
+        }
+
+        protected (double X, double Y) Displacement((double X, double Y) source, (double X, double Y) target)
+        {
+            double c = Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
+            double a = target.X - source.X;
+            double b = target.Y - source.Y;
+            double cPrim = Speed;
+            double aPrim = a * cPrim / c;
+            double bPrim = b * cPrim / c;
+
+            return (PositionLT.X + aPrim, PositionLT.Y + bPrim);
+        }
+
+        protected bool IsMoveOutOfBounds((double X, double Y) valueTuple) =>
+            valueTuple.X < 0 || valueTuple.X > GameEngine.ResX - Width || valueTuple.Y < 0 || valueTuple.Y > GameEngine.ResY - Height;
+
+        protected bool IsTargetInTheRangeOfFire(GameObject gameObject) =>
+            Math.Sqrt(Math.Pow(gameObject.CenterPosition.X - CenterPosition.X, 2) + Math.Pow(gameObject.CenterPosition.Y - CenterPosition.Y, 2)) <= RangeOfFire;
+
+        protected bool IsTargetInTheRangeOfView(GameObject gameObject) =>
+            Math.Sqrt(Math.Pow(gameObject.CenterPosition.X - CenterPosition.X, 2) + Math.Pow(gameObject.CenterPosition.Y - CenterPosition.Y, 2)) <= RangeOfView;
+
+        protected bool Rotate()
+        {
+            CurrentAngle %= 360;
+            if (Angle - RotationSpeed > CurrentAngle)
+            {
+                if (Angle - CurrentAngle < 180)
+                {
+                    CurrentAngle += RotationSpeed;
+                    if (CurrentAngle >= 360)
+                    {
+                        CurrentAngle = 360 - CurrentAngle;
+                    }
+                }
+                else
+                {
+                    CurrentAngle -= RotationSpeed;
+                    if (CurrentAngle < 0)
+                    {
+                        CurrentAngle = 360 + CurrentAngle;
+                    }
+                }
+                return false;
+            }
+            else if (Angle + RotationSpeed < CurrentAngle)
+            {
+                if (CurrentAngle - Angle < 180)
+                {
+                    CurrentAngle -= RotationSpeed;
+                    if (CurrentAngle < 0)
+                    {
+                        CurrentAngle = 360 + CurrentAngle;
+                    }
+                }
+                else
+                {
+                    CurrentAngle += RotationSpeed;
+                    if (CurrentAngle >= 360)
+                    {
+                        CurrentAngle = 360 - CurrentAngle;
+                    }
+                }
+                return false;
+            }
+            else
+            {
+                CurrentAngle = Angle;
+                return true;
+            }
+        }
+
+        protected void SetAim((double X, double Y) aim)
+        {
+            Aim = (aim.X > GameEngine.ResX ? GameEngine.ResX : aim.X, aim.Y > GameEngine.ResY ? GameEngine.ResY : aim.Y);
+        }
+
+        private double GetAngle()
+        {
+            double angle = Math.Atan((Aim.Y - CenterPosition.Y) / (Aim.X - CenterPosition.X)) * 180 / Math.PI;
+            if (Aim.X - CenterPosition.X < 0)
+            {
+                angle += 180;
+            }
+            else if (angle < 0)
+            {
+                angle = 360 + angle;
+            }
+
+            return angle;
+        }
         private bool IsKilled() =>
             Health <= 0;
+
+        private void Shoot()
+        {
+            if (Rotate())
+            {
+                FireBullet?.Invoke(this, Factory.Make(new Bullet
+                {
+                    Target = Aim,
+                    Source = CenterPosition,
+                    PositionLT = CenterPosition,
+                    Shooter = this
+                }));
+                BulletsFired++;
+            }
+        }
     }
 }

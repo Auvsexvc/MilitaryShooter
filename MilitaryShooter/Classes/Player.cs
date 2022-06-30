@@ -1,22 +1,10 @@
 ﻿using MilitaryShooter.Interfaces;
 using System;
 
-namespace MilitaryShooter
+namespace MilitaryShooter.Classes
 {
     internal class Player : Character, IPlayer
     {
-        public bool MoveDown { get; set; }
-        public bool MoveLeft { get; set; }
-        public bool MoveRight { get; set; }
-        public bool MoveUp { get; set; }
-        public bool AlternativeControls { get; set; }
-
-        public event Action? RestartedGame;
-
-        public event Action? SwitchedGameMenu;
-
-        public event Action? SwitchedGamePause;
-
         public Player()
         {
             Name = "PlayerOne";
@@ -25,6 +13,42 @@ namespace MilitaryShooter
             Health = 500;
             LaserAssistance = false;
             AlternativeControls = false;
+        }
+
+        public event Action? RestartedGame;
+
+        public event Action? SwitchedGameMenu;
+
+        public event Action? SwitchedGamePause;
+
+        public bool AlternativeControls { get; set; }
+        public bool MoveDown { get; set; }
+        public bool MoveLeft { get; set; }
+        public bool MoveRight { get; set; }
+        public bool MoveUp { get; set; }
+        public void ContinueGame()
+        {
+            SwitchedGameMenu?.Invoke();
+        }
+
+        public void RestartGame()
+        {
+            RestartedGame?.Invoke();
+        }
+
+        public void SwitchGameMenu()
+        {
+            SwitchedGameMenu?.Invoke();
+        }
+
+        public void SwitchGamePause()
+        {
+            SwitchedGamePause?.Invoke();
+        }
+
+        public void SwitchLaserTargeting()
+        {
+            LaserAssistance = !LaserAssistance;
         }
 
         public override void Update()
@@ -46,6 +70,27 @@ namespace MilitaryShooter
             }
         }
 
+        private void AltMove()
+        {
+            if (MoveLeft && PositionLT.X > 0)
+            {
+                PositionLT = (PositionLT.X - Speed, PositionLT.Y);
+            }
+            if (MoveRight && PositionLT.X < GameEngine.ResX - Width)
+            {
+                PositionLT = (PositionLT.X + Speed, PositionLT.Y);
+            }
+            if (MoveUp && PositionLT.Y > 0)
+            {
+                PositionLT = (PositionLT.X, PositionLT.Y - Speed);
+            }
+            if (MoveDown && PositionLT.Y < GameEngine.ResY - Height)
+            {
+                PositionLT = (PositionLT.X, PositionLT.Y + Speed);
+            }
+            Rotate();
+        }
+
         private void Move()
         {
             (double x, double y) = Displacement(PositionLT, Aim);
@@ -55,7 +100,7 @@ namespace MilitaryShooter
 
             if (MoveLeft)
             {
-                moveAngle = (-90);
+                moveAngle = -90;
                 moveRadians += moveAngle * Math.PI / 180;
             }
             if (MoveLeft && MoveUp)
@@ -75,12 +120,12 @@ namespace MilitaryShooter
             }
             if (MoveRight && MoveUp)
             {
-                moveAngle = (-45);
+                moveAngle = -45;
                 moveRadians += moveAngle * Math.PI / 180;
             }
             if (MoveRight && MoveDown)
             {
-                moveAngle = (-135);
+                moveAngle = -135;
                 moveRadians += moveAngle * Math.PI / 180;
             }
             if (MoveUp)
@@ -106,52 +151,6 @@ namespace MilitaryShooter
 
             PositionLT = (PositionLT.X + NewPositionLT.X, PositionLT.Y + NewPositionLT.Y);
             Rotate();
-        }
-
-        private void AltMove()
-        {
-            if (MoveLeft && PositionLT.X > 0)
-            {
-                PositionLT = (PositionLT.X - Speed, PositionLT.Y);
-            }
-            if (MoveRight && PositionLT.X < GameEngine.ResX - Width)
-            {
-                PositionLT = (PositionLT.X + Speed, PositionLT.Y);
-            }
-            if (MoveUp && PositionLT.Y > 0)
-            {
-                PositionLT = (PositionLT.X, PositionLT.Y - Speed);
-            }
-            if (MoveDown && PositionLT.Y < GameEngine.ResY - Height)
-            {
-                PositionLT = (PositionLT.X, PositionLT.Y + Speed);
-            }
-            Rotate();
-        }
-
-        public void SwitchGamePause()
-        {
-            SwitchedGamePause?.Invoke();
-        }
-
-        public void SwitchGameMenu()
-        {
-            SwitchedGameMenu?.Invoke();
-        }
-
-        public void ContinueGame()
-        {
-            SwitchedGameMenu?.Invoke();
-        }
-
-        public void RestartGame()
-        {
-            RestartedGame?.Invoke();
-        }
-
-        public void SwitchLaserTargeting()
-        {
-            LaserAssistance = !LaserAssistance;
         }
     }
 }

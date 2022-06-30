@@ -1,13 +1,24 @@
-﻿using System;
+﻿using MilitaryShooter.Factories;
+using System;
 using System.Collections.Generic;
 using System.Windows;
 
-namespace MilitaryShooter
+namespace MilitaryShooter.Classes
 {
     internal abstract class GameObject
     {
+        protected GameObject()
+        {
+            Guid = Guid.NewGuid();
+            IsExpired = false;
+            Factory = new ObjectFactory();
+        }
+
+        public event Action<GameObject>? TriggerRemoveObject;
+
         public (double X, double Y) CenterPosition => GetCenter();
 
+        public ObjectFactory Factory { get; set; }
         public Guid Guid { get; protected set; }
 
         public int Health { get; protected set; }
@@ -19,17 +30,6 @@ namespace MilitaryShooter
 
         public double Speed { get; protected set; }
         public double Width { get; set; }
-        public ObjectFactory Factory { get; set; }
-
-        public event Action<GameObject>? TriggerRemoveObject;
-
-        protected GameObject()
-        {
-            Guid = Guid.NewGuid();
-            IsExpired = false;
-            Factory = new ObjectFactory();
-        }
-
         public virtual void TakeDamage(double damage)
         {
             Health -= (int)damage;
@@ -37,16 +37,15 @@ namespace MilitaryShooter
 
         public abstract void Update();
 
-        protected virtual GameObject? CheckCollisions()
-        {
-            return GetGameObjects().Find(obj => this.IntersectsWith(obj));
-        }
-
         protected static double DistanceMeter((double X, double Y) source, (double X, double Y) target)
         {
             return Math.Sqrt(Math.Pow(target.X - source.X, 2) + Math.Pow(target.Y - source.Y, 2));
         }
 
+        protected virtual GameObject? CheckCollisions()
+        {
+            return GetGameObjects().Find(obj => IntersectsWith(obj));
+        }
         protected List<GameObject> GetGameObjects()
         {
             return Factory.GetGameObjects();
@@ -54,7 +53,7 @@ namespace MilitaryShooter
 
         protected virtual bool IntersectsWith(GameObject gameObject)
         {
-            return new Rect(this.PositionLT.X, this.PositionLT.Y, this.Width, this.Height).IntersectsWith(new Rect(gameObject.PositionLT.X, gameObject.PositionLT.Y, gameObject.Width, gameObject.Height));
+            return new Rect(PositionLT.X, PositionLT.Y, Width, Height).IntersectsWith(new Rect(gameObject.PositionLT.X, gameObject.PositionLT.Y, gameObject.Width, gameObject.Height));
         }
 
         protected bool IsOutOfBounds()

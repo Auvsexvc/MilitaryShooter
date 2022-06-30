@@ -1,8 +1,9 @@
-﻿using System;
+﻿using MilitaryShooter.Classes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MilitaryShooter
+namespace MilitaryShooter.Factories
 {
     internal class ObjectFactory
     {
@@ -11,21 +12,6 @@ namespace MilitaryShooter
         public ObjectFactory()
         {
             _gameObjects = new();
-        }
-
-        public T Make<T>(T obj)
-        {
-            if (obj is GameObject gameObject)
-            {
-                _gameObjects.Add(gameObject);
-                gameObject.Factory = this;
-            }
-            return (T)Convert.ChangeType(obj, obj!.GetType())!;
-        }
-
-        public List<GameObject> GetGameObjects()
-        {
-            return _gameObjects;
         }
 
         public void Decommission(GameObject gameObject)
@@ -46,6 +32,21 @@ namespace MilitaryShooter
         public List<Character> GetCharacters()
         {
             return _gameObjects.OfType<Character>().ToList();
+        }
+
+        public List<GameObject> GetGameObjects()
+        {
+            return _gameObjects;
+        }
+
+        public T Make<T>(T obj)
+        {
+            if (obj is GameObject gameObject)
+            {
+                _gameObjects.Add(gameObject);
+                gameObject.Factory = this;
+            }
+            return (T)Convert.ChangeType(obj, obj!.GetType())!;
         }
     }
 }

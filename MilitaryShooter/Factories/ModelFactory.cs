@@ -1,8 +1,9 @@
 ﻿using MilitaryShooter.Classes;
+using MilitaryShooter.Models;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MilitaryShooter.Models
+namespace MilitaryShooter.Factories
 {
     internal class ModelFactory
     {
@@ -11,6 +12,31 @@ namespace MilitaryShooter.Models
         public ModelFactory()
         {
             _gameObjectModels = new();
+        }
+
+        public void Decommission(GameModel gameModel)
+        {
+            _gameObjectModels.Remove(gameModel);
+        }
+
+        public void DecommissionAll()
+        {
+            _gameObjectModels.Clear();
+        }
+
+        public void DecommissionExpired()
+        {
+            _gameObjectModels.RemoveAll(o => o.GetGameObject().IsExpired);
+        }
+
+        public GameModel? FindGameModelBy(GameObject gameObject)
+        {
+            return _gameObjectModels.Find(o => o.GetGameObject() == gameObject);
+        }
+
+        public List<GameModel> GetGameModels()
+        {
+            return _gameObjectModels;
         }
 
         public GameModel MakeModel(GameObject gameObject)
@@ -51,31 +77,6 @@ namespace MilitaryShooter.Models
                     break;
             }
             return _gameObjectModels.Last();
-        }
-
-        public List<GameModel> GetGameModels()
-        {
-            return _gameObjectModels;
-        }
-
-        public void DecommissionAll()
-        {
-            _gameObjectModels.Clear();
-        }
-
-        public void Decommission(GameModel gameModel)
-        {
-            _gameObjectModels.Remove(gameModel);
-        }
-
-        public void DecommissionExpired()
-        {
-            _gameObjectModels.RemoveAll(o => o.GetGameObject().IsExpired);
-        }
-
-        public GameModel? FindGameModelBy(GameObject gameObject)
-        {
-            return _gameObjectModels.Find(o => o.GetGameObject() == gameObject);
         }
     }
 }

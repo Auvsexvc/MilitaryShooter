@@ -3,27 +3,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
-namespace MilitaryShooter
+namespace MilitaryShooter.Classes
 {
     internal class Grenade : Projectile
     {
-        private const double DefaultSpeed = 8;
-        private const double DefaultDamage = 15;
-        private const double DefaultWidth = 16;
-        private const double DefaultHeight = 16;
-        private const double DefaultRange = 300;
         private const double DefaultBlastRadius = 300;
         private const double DefaultBlastSpeed = 50;
+        private const double DefaultDamage = 15;
         private const int DefaultFuserTime = 5000;
-
-        public double BlastRadius { get; set; }
-        public double BlastSpeed { get; set; }
-        public double CurrentBlastRadius { get; set; }
-        public bool Exploded { get; set; }
-        public Stopwatch Stopwatch { get; }
-
-        public event Action<Grenade>? TriggerModelResize;
-
+        private const double DefaultHeight = 16;
+        private const double DefaultRange = 300;
+        private const double DefaultSpeed = 8;
+        private const double DefaultWidth = 16;
         public Grenade()
         {
             Width = DefaultWidth;
@@ -38,6 +29,13 @@ namespace MilitaryShooter
             Stopwatch.Start();
         }
 
+        public event Action<Grenade>? TriggerModelResize;
+
+        public double BlastRadius { get; set; }
+        public double BlastSpeed { get; set; }
+        public double CurrentBlastRadius { get; set; }
+        public bool Exploded { get; set; }
+        public Stopwatch Stopwatch { get; }
         public override void Update()
         {
             MoveToPoint();
