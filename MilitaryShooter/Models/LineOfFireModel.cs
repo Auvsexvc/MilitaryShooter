@@ -5,7 +5,7 @@ using System.Windows.Shapes;
 
 namespace MilitaryShooter.Models
 {
-    internal class LineOfFireModel : GameObjectModel
+    internal class LineOfFireModel : GameModel
     {
         public LineOfFireModel(Character character) : base(character)
         {

@@ -40,11 +40,11 @@ namespace MilitaryShooter
 
         public event Action? PlayerDeath;
 
-        public event Action<GameObjectModel>? RemoveModel;
+        public event Action<GameModel>? RemoveModel;
 
-        public event Action<GameObjectModel>? MakeProjectileModel;
+        public event Action<GameModel>? MakeProjectileModel;
 
-        public event Action<GameObjectModel>? MakeCharacterModel;
+        public event Action<GameModel>? MakeCharacterModel;
 
         public event Action? UpdateLabels;
 
@@ -88,7 +88,7 @@ namespace MilitaryShooter
             }
         }
 
-        public List<GameObjectModel> GetGameModels()
+        public List<GameModel> GetGameModels()
         {
             return _modelFactory.GetGameModels();
         }
@@ -110,6 +110,7 @@ namespace MilitaryShooter
         private void CleanGameObjects()
         {
             _objectFactory.DecommissionExpired();
+            _modelFactory.DecommissionExpired();
         }
 
         private List<Character> GetCharacters()
@@ -174,17 +175,17 @@ namespace MilitaryShooter
         private void RemoveGameObject(GameObject gameObject)
         {
             _objectFactory.Decommission(gameObject);
-            GameObjectModel? modelToRemove = _modelFactory.GetGameModels().Find(o => o.GetGameObject() == gameObject);
+            GameModel? modelToRemove = _modelFactory.FindGameModelBy(gameObject);
             if (modelToRemove != null)
             {
                 RemoveModel?.Invoke(modelToRemove);
-                _modelFactory.GetGameModels().Remove(modelToRemove);
+                _modelFactory.Decommission(modelToRemove);
             }
         }
 
         private void Spawn(Character character)
         {
-            MakeCharacterModel?.Invoke(_modelFactory.ProduceModel(character));
+            MakeCharacterModel?.Invoke(_modelFactory.MakeModel(character));
             character.TriggerRemoveObject += RemoveGameObject;
             character.FireBullet += SpawnProjectileFiredBy;
             character.UseGrenade += SpawnProjectileFiredBy;
@@ -192,12 +193,8 @@ namespace MilitaryShooter
 
         private void SpawnProjectileFiredBy(Character character, Projectile projectile)
         {
-            if (projectile is Bullet newBullet && character.BulletsFired > 0 && character.BulletsFired % GameStatic.rand.Next(3, 6) == 0)
-            {
-                newBullet.SetToTracerRound();
-            }
             projectile.TriggerRemoveObject += RemoveGameObject;
-            MakeProjectileModel?.Invoke(_modelFactory.ProduceModel(projectile, character));
+            MakeProjectileModel?.Invoke(_modelFactory.MakeModel(projectile, character));
         }
 
         private async Task UnPause()
@@ -217,9 +214,9 @@ namespace MilitaryShooter
 
         private void UpdateGameObjects()
         {
-            for (int i = 0; i < GetGameObjects().Count; i++)
+            for (int i = 0; i < _objectFactory.GetGameObjects().Count; i++)
             {
-                GameObject obj = GetGameObjects()[i];
+                GameObject obj = _objectFactory.GetGameObjects()[i];
                 obj.Update();
             }
         }

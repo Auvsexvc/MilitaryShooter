@@ -9,7 +9,7 @@ namespace MilitaryShooter.Factory
 {
     internal class CharacterModelCreator : ModelCreator
     {
-        public override GameObjectModel FactoryMethod(GameObject gameObject)
+        public override GameModel FactoryMethod(GameObject gameObject)
         {
             return new CharacterModel(gameObject);
         }

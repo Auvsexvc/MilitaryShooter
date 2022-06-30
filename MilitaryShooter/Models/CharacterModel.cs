@@ -9,7 +9,7 @@ using System.Windows.Shapes;
 
 namespace MilitaryShooter.Models
 {
-    internal class CharacterModel : GameObjectModel
+    internal class CharacterModel : GameModel
     {
         private const string UriString = "Assets/soldier.png";
 

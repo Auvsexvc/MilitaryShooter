@@ -5,7 +5,7 @@ using System.Windows.Shapes;
 
 namespace MilitaryShooter.Models
 {
-    internal class BulletModel : GameObjectModel
+    internal class BulletModel : GameModel
     {
         public BulletModel(Bullet bulletObj, Character characterObj) : base(bulletObj)
         {

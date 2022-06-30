@@ -23,6 +23,7 @@
             Height = DefaultHeight;
             Trail = (DefaultTrailW, DefaultTrailH);
             _spray = (GameStatic.rand.Next(-DefaultSpray, DefaultSpray + 1), GameStatic.rand.Next(-DefaultSpray, DefaultSpray + 1));
+            SetToTracerRound();
         }
 
         protected override void MoveToPoint()
@@ -39,10 +40,13 @@
 
         public void SetToTracerRound()
         {
-            IsTracer = true;
-            Trail = (Trail.W * 4, Trail.H * 2);
-            Speed *= (1 - 0.15);
-            _spray = (_spray.x * 2, _spray.y * 2);
+            if (Shooter?.BulletsFired > 0 && Shooter.BulletsFired % GameStatic.rand.Next(3, 6) == 0)
+            {
+                IsTracer = true;
+                Trail = (Trail.W * 4, Trail.H * 2);
+                Speed *= (1 - 0.15);
+                _spray = (_spray.x * 2, _spray.y * 2);
+            }
         }
     }
 }

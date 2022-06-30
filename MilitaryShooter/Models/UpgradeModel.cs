@@ -1,6 +1,6 @@
 ﻿namespace MilitaryShooter.Models
 {
-    internal class UpgradeModel : GameObjectModel
+    internal class UpgradeModel : GameModel
     {
         public UpgradeModel(GameObject gameObject) : base(gameObject)
         {

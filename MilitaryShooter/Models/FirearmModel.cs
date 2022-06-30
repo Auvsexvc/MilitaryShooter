@@ -1,6 +1,6 @@
 ﻿namespace MilitaryShooter.Models
 {
-    internal class FirearmModel : GameObjectModel
+    internal class FirearmModel : GameModel
     {
         public FirearmModel(GameObject gameObject) : base(gameObject)
         {

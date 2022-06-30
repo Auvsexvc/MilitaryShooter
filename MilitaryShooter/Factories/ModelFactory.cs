@@ -6,14 +6,14 @@ namespace MilitaryShooter.Models
 {
     internal class ModelFactory
     {
-        private readonly List<GameObjectModel> _gameObjectModels;
+        private readonly List<GameModel> _gameObjectModels;
 
         public ModelFactory()
         {
-            _gameObjectModels = (new());
+            _gameObjectModels = new();
         }
 
-        public GameObjectModel ProduceModel(GameObject gameObject)
+        public GameModel MakeModel(GameObject gameObject)
         {
             switch (gameObject)
             {
@@ -35,7 +35,7 @@ namespace MilitaryShooter.Models
             return _gameObjectModels.Last();
         }
 
-        public GameObjectModel ProduceModel(Projectile projectile, Character gameObject)
+        public GameModel MakeModel(Projectile projectile, Character gameObject)
         {
             switch (projectile)
             {
@@ -53,7 +53,7 @@ namespace MilitaryShooter.Models
             return _gameObjectModels.Last();
         }
 
-        public List<GameObjectModel> GetGameModels()
+        public List<GameModel> GetGameModels()
         {
             return _gameObjectModels;
         }
@@ -63,9 +63,19 @@ namespace MilitaryShooter.Models
             _gameObjectModels.Clear();
         }
 
-        public void Decommission(GameObjectModel gameModel)
+        public void Decommission(GameModel gameModel)
         {
             _gameObjectModels.Remove(gameModel);
+        }
+
+        public void DecommissionExpired()
+        {
+            _gameObjectModels.RemoveAll(o => o.GetGameObject().IsExpired);
+        }
+
+        public GameModel? FindGameModelBy(GameObject gameObject)
+        {
+            return _gameObjectModels.Find(o => o.GetGameObject() == gameObject);
         }
     }
 }

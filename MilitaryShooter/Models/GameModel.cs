@@ -4,13 +4,13 @@ using System.Windows;
 
 namespace MilitaryShooter.Models
 {
-    internal abstract class GameObjectModel
+    internal abstract class GameModel
     {
         private readonly GameObject _gameObject;
         public Guid Guid { get; }
         public List<UIElement> UIElements { get; protected set; }
 
-        protected GameObjectModel(GameObject gameObject)
+        protected GameModel(GameObject gameObject)
         {
             Guid = gameObject.Guid;
             _gameObject = gameObject;

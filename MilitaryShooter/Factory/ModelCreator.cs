@@ -9,6 +9,6 @@ namespace MilitaryShooter.Factory
 {
     internal abstract class ModelCreator
     {
-        public abstract GameObjectModel FactoryMethod(GameObject gameObject);
+        public abstract GameModel FactoryMethod(GameObject gameObject);
     }
 }

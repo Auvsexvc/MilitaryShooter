@@ -10,7 +10,7 @@ namespace MilitaryShooter
 
         public ObjectFactory()
         {
-            _gameObjects = (new());
+            _gameObjects = new();
         }
 
         public T Make<T>(T obj)

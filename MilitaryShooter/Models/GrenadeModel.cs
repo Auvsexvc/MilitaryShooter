@@ -5,7 +5,7 @@ using System.Windows.Shapes;
 
 namespace MilitaryShooter.Models
 {
-    internal class GrenadeModel : GameObjectModel
+    internal class GrenadeModel : GameModel
     {
         public GrenadeModel(Grenade grenadeObj, Character characterObj) : base(grenadeObj)
         {

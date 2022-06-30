@@ -65,7 +65,7 @@ namespace MilitaryShooter
 
         private void DrawObjects()
         {
-            foreach (GameObjectModel objectModel in _gameEngine.GetGameModels())
+            foreach (GameModel objectModel in _gameEngine.GetGameModels())
             {
                 objectModel.Transform();
                 foreach (UIElement e in objectModel.UIElements)
@@ -181,7 +181,7 @@ namespace MilitaryShooter
             GameMenuOpen();
         }
 
-        private void OnRemoveModel(GameObjectModel model)
+        private void OnRemoveModel(GameModel model)
         {
             foreach (UIElement e in model.UIElements)
             {
@@ -198,7 +198,7 @@ namespace MilitaryShooter
             await TransitionTo(GameCanvas);
         }
 
-        private void OnMakeCharacterModel(GameObjectModel model)
+        private void OnMakeCharacterModel(GameModel model)
         {
             foreach (UIElement e in model.UIElements)
             {
@@ -223,7 +223,7 @@ namespace MilitaryShooter
             Canvas.SetRight(healthLabel, 0);
         }
 
-        private void OnMakeProjectileModel(GameObjectModel model)
+        private void OnMakeProjectileModel(GameModel model)
         {
             foreach (UIElement e in model.UIElements)
             {
