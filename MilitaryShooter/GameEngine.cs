@@ -88,15 +88,15 @@ namespace MilitaryShooter
             }
         }
 
-        public List<GameObjectModel> GetModels()
+        public List<GameObjectModel> GetGameModels()
         {
-            return _modelFactory.GameObjectModels;
+            return _modelFactory.GetGameModels();
         }
 
         public void OnGameRestartedByPlayer()
         {
-            _objectFactory.GameObjects.Clear();
-            _modelFactory.GameObjectModels.Clear();
+            _objectFactory.DecommissionAll();
+            _modelFactory.DecommissionAll();
         }
 
         public void SpawnCharacters()
@@ -109,17 +109,17 @@ namespace MilitaryShooter
 
         private void CleanGameObjects()
         {
-            GetGameObjects().RemoveAll(o => o.IsExpired);
+            _objectFactory.DecommissionExpired();
         }
 
         private List<Character> GetCharacters()
         {
-            return GetGameObjects().OfType<Character>().ToList();
+            return _objectFactory.GetCharacters();
         }
 
         private List<GameObject> GetGameObjects()
         {
-            return _objectFactory.GameObjects;
+            return _objectFactory.GetGameObjects();
         }
 
         private async void OnGameMenuSwitchByPlayer()
@@ -173,12 +173,12 @@ namespace MilitaryShooter
 
         private void RemoveGameObject(GameObject gameObject)
         {
-            _objectFactory.GameObjects.Remove(gameObject);
-            var modelToRemove = _modelFactory.GameObjectModels.Find(o => o.GetGameObject() == gameObject);
+            _objectFactory.Decommission(gameObject);
+            GameObjectModel? modelToRemove = _modelFactory.GetGameModels().Find(o => o.GetGameObject() == gameObject);
             if (modelToRemove != null)
             {
                 RemoveModel?.Invoke(modelToRemove);
-                _modelFactory.GameObjectModels.Remove(modelToRemove);
+                _modelFactory.GetGameModels().Remove(modelToRemove);
             }
         }
 

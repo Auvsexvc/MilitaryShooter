@@ -49,7 +49,7 @@ namespace MilitaryShooter
 
         private void DrawLinesOfFire()
         {
-            foreach (CharacterModel characterModel in _gameEngine.GetModels().OfType<CharacterModel>())
+            foreach (CharacterModel characterModel in _gameEngine.GetGameModels().OfType<CharacterModel>())
             {
                 foreach (UIElement e in GameCanvas.Children.OfType<Line>().Where(e => e.Uid == characterModel.Guid.ToString()).ToList())
                 {
@@ -65,7 +65,7 @@ namespace MilitaryShooter
 
         private void DrawObjects()
         {
-            foreach (GameObjectModel objectModel in _gameEngine.GetModels())
+            foreach (GameObjectModel objectModel in _gameEngine.GetGameModels())
             {
                 objectModel.Transform();
                 foreach (UIElement e in objectModel.UIElements)
@@ -284,7 +284,7 @@ namespace MilitaryShooter
                         }
                 }
             }
-            foreach (CharacterModel character in _gameEngine.GetModels().OfType<CharacterModel>())
+            foreach (CharacterModel character in _gameEngine.GetGameModels().OfType<CharacterModel>())
             {
                 foreach (Label characterLabel in character.UIElements.OfType<Label>())
                 {

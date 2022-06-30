@@ -6,11 +6,11 @@ namespace MilitaryShooter.Models
 {
     internal class ModelFactory
     {
-        public List<GameObjectModel> GameObjectModels { get; set; }
+        private readonly List<GameObjectModel> _gameObjectModels;
 
         public ModelFactory()
         {
-            GameObjectModels = new();
+            _gameObjectModels = (new());
         }
 
         public GameObjectModel ProduceModel(GameObject gameObject)
@@ -18,18 +18,21 @@ namespace MilitaryShooter.Models
             switch (gameObject)
             {
                 case Character character:
-                    GameObjectModels.Add(new CharacterModel(character));
+                    _gameObjectModels.Add(new CharacterModel(character));
                     break;
+
                 case Firearm firearm:
-                    GameObjectModels.Add(new FirearmModel(firearm));
+                    _gameObjectModels.Add(new FirearmModel(firearm));
                     break;
+
                 case Upgrade upgrade:
-                    GameObjectModels.Add(new UpgradeModel(upgrade));
+                    _gameObjectModels.Add(new UpgradeModel(upgrade));
                     break;
+
                 default:
                     break;
             }
-            return GameObjectModels.Last();
+            return _gameObjectModels.Last();
         }
 
         public GameObjectModel ProduceModel(Projectile projectile, Character gameObject)
@@ -37,15 +40,32 @@ namespace MilitaryShooter.Models
             switch (projectile)
             {
                 case Bullet bullet:
-                    GameObjectModels.Add(new BulletModel(bullet, gameObject));
+                    _gameObjectModels.Add(new BulletModel(bullet, gameObject));
                     break;
+
                 case Grenade grenade:
-                    GameObjectModels.Add(new GrenadeModel(grenade, gameObject));
+                    _gameObjectModels.Add(new GrenadeModel(grenade, gameObject));
                     break;
+
                 default:
                     break;
             }
-            return GameObjectModels.Last();
+            return _gameObjectModels.Last();
+        }
+
+        public List<GameObjectModel> GetGameModels()
+        {
+            return _gameObjectModels;
+        }
+
+        public void DecommissionAll()
+        {
+            _gameObjectModels.Clear();
+        }
+
+        public void Decommission(GameObjectModel gameModel)
+        {
+            _gameObjectModels.Remove(gameModel);
         }
     }
 }

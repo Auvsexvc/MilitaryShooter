@@ -13,39 +13,39 @@ namespace MilitaryShooter.Models
     {
         private const string UriString = "Assets/soldier.png";
 
-        public CharacterModel(Character character) : base(character)
+        public CharacterModel(GameObject gameObject) : base(gameObject)
         {
-            TranslateTransform moveTransform = new(character.Width / 2, character.Height / 2);
+            TranslateTransform moveTransform = new(gameObject.Width / 2, gameObject.Height / 2);
             UIElements = new List<UIElement>()
             {
                 new Ellipse()
                 {
-                    Uid = character.Guid.ToString(),
+                    Uid = gameObject.Guid.ToString(),
                     Tag = "Stand",
-                    Name = character.Name,
-                    Height = character.Height,
-                    Width = character.Width,
-                    Fill = character is Enemy ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.White),
+                    Name = gameObject.Name,
+                    Height = gameObject.Height,
+                    Width = gameObject.Width,
+                    Fill = gameObject is Enemy ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.White),
                     Opacity = 0.2,
                     RenderTransformOrigin = new Point(0.5, 0.5)
                 },
                 new Ellipse()
                 {
-                    Uid = character.Guid.ToString(),
+                    Uid = gameObject.Guid.ToString(),
                     Tag = "Character",
-                    Name = character.Name,
-                    Height = character.Height,
-                    Width = character.Width,
+                    Name = gameObject.Name,
+                    Height = gameObject.Height,
+                    Width = gameObject.Width,
                     Fill = new ImageBrush() { ImageSource = new BitmapImage(new Uri(UriString, UriKind.Relative)) },
-                    Stroke = character is Enemy ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.White),
+                    Stroke = gameObject is Enemy ? new SolidColorBrush(Colors.Red) : new SolidColorBrush(Colors.White),
                     StrokeThickness = 1.5,
                     RenderTransformOrigin = new Point(0.5, 0.5)
                 },
                 new Label()
                 {
-                    Uid=character.Guid.ToString(),
+                    Uid=gameObject.Guid.ToString(),
                     Name = "Name",
-                    Content = character.Name,
+                    Content = gameObject.Name,
                     FontSize = 12,
                     Foreground = Brushes.White,
                     Width = 128,
@@ -54,9 +54,9 @@ namespace MilitaryShooter.Models
                 },
                 new Label()
                 {
-                    Uid=character.Guid.ToString(),
+                    Uid=gameObject.Guid.ToString(),
                     Name = "Health",
-                    Content = character.Health,
+                    Content = gameObject.Health,
                     FontSize = 8,
                     Foreground = Brushes.White,
                     Width = 128,
@@ -72,11 +72,11 @@ namespace MilitaryShooter.Models
                 {
                     if (lbl.Name == "Name")
                     {
-                        transformGroup.Children.Add(new TranslateTransform(-character.Width * 1.5, -character.Height - 8));
+                        transformGroup.Children.Add(new TranslateTransform(-gameObject.Width * 1.5, -gameObject.Height - 8));
                     }
                     else if (lbl.Name == "Health")
                     {
-                        transformGroup.Children.Add(new TranslateTransform(-character.Width * 1.5, -character.Height + 8));
+                        transformGroup.Children.Add(new TranslateTransform(-gameObject.Width * 1.5, -gameObject.Height + 8));
                     }
                 }
                 else

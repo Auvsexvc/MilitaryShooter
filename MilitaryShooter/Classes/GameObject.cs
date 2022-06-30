@@ -49,7 +49,7 @@ namespace MilitaryShooter
 
         protected List<GameObject> GetGameObjects()
         {
-            return Factory.GameObjects;
+            return Factory.GetGameObjects();
         }
 
         protected virtual bool IntersectsWith(GameObject gameObject)
