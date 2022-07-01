@@ -24,6 +24,7 @@
 
         public bool IsTracer { get; private set; }
         public (double W, double H) Trail { get; private set; }
+
         public void SetToTracerRound()
         {
             if (Shooter?.BulletsFired > 0 && Shooter.BulletsFired % GameStatic.rand.Next(3, 6) == 0)

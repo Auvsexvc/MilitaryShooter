@@ -48,6 +48,7 @@ namespace MilitaryShooter.Classes
             ShorteningDistanceToTarget(target);
             ShootAtTarget(target);
         }
+
         private GameObject SetNearestTarget()
         {
             return GetGameObjects().Where(o => o is Character && o != this).OrderBy(o => DistanceMeter(CenterPosition, o.CenterPosition)).ThenByDescending(o => o.GetType().Name).First();

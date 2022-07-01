@@ -1,15 +1,14 @@
 ﻿using MilitaryShooter.Classes;
-using MilitaryShooter.Factories;
 
 namespace MilitaryShooter
 {
     internal class EnemyQueue
     {
-        private readonly ObjectFactory _objectFactory;
-        public EnemyQueue(ObjectFactory factory)
+        private readonly GameObjectCreator _objectCreator;
+        public EnemyQueue(GameObjectCreator factory)
         {
-            _objectFactory = factory;
-            NextEnemy = _objectFactory.Make(new Enemy());
+            _objectCreator = factory;
+            NextEnemy = _objectCreator.Make(new Enemy());
         }
 
         public Enemy NextEnemy { get; private set; }
@@ -17,7 +16,7 @@ namespace MilitaryShooter
         {
             while (clones > 0)
             {
-                NextEnemy = _objectFactory.Make(new Enemy());
+                NextEnemy = _objectCreator.Make(new Enemy());
                 clones--;
             }
 
@@ -29,7 +28,7 @@ namespace MilitaryShooter
             Enemy enemy = NextEnemy;
             do
             {
-                NextEnemy = _objectFactory.Make(new Enemy());
+                NextEnemy = _objectCreator.Make(new Enemy());
             }
             while (enemy.Guid == NextEnemy.Guid);
 

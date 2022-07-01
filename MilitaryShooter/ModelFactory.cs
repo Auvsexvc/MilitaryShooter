@@ -3,7 +3,7 @@ using MilitaryShooter.Models;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MilitaryShooter.Factories
+namespace MilitaryShooter
 {
     internal class ModelFactory
     {

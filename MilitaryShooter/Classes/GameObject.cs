@@ -1,5 +1,4 @@
-﻿using MilitaryShooter.Factories;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows;
 
@@ -11,14 +10,14 @@ namespace MilitaryShooter.Classes
         {
             Guid = Guid.NewGuid();
             IsExpired = false;
-            Factory = new ObjectFactory();
+            Creator = new GameObjectCreator();
         }
 
         public event Action<GameObject>? TriggerRemoveObject;
 
         public (double X, double Y) CenterPosition => GetCenter();
 
-        public ObjectFactory Factory { get; set; }
+        public GameObjectCreator Creator { get; set; }
         public Guid Guid { get; protected set; }
 
         public int Health { get; protected set; }
@@ -30,6 +29,7 @@ namespace MilitaryShooter.Classes
 
         public double Speed { get; protected set; }
         public double Width { get; set; }
+
         public virtual void TakeDamage(double damage)
         {
             Health -= (int)damage;
@@ -46,9 +46,10 @@ namespace MilitaryShooter.Classes
         {
             return GetGameObjects().Find(obj => IntersectsWith(obj));
         }
+
         protected List<GameObject> GetGameObjects()
         {
-            return Factory.GetGameObjects();
+            return Creator.GetGameObjects();
         }
 
         protected virtual bool IntersectsWith(GameObject gameObject)

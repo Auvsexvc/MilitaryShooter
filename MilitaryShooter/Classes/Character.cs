@@ -129,7 +129,7 @@ namespace MilitaryShooter.Classes
         {
             if (Rotate())
             {
-                UseGrenade?.Invoke(this, Factory.Make(new Grenade
+                UseGrenade?.Invoke(this, Creator.Make(new Grenade
                 {
                     Target = Aim,
                     Source = CenterPosition,
@@ -236,7 +236,7 @@ namespace MilitaryShooter.Classes
         {
             if (Rotate())
             {
-                FireBullet?.Invoke(this, Factory.Make(new Bullet
+                FireBullet?.Invoke(this, Creator.Make(new Bullet
                 {
                     Target = Aim,
                     Source = CenterPosition,

@@ -1,5 +1,4 @@
 ﻿using MilitaryShooter.Classes;
-using MilitaryShooter.Factories;
 using MilitaryShooter.Models;
 using System;
 using System.Collections.Generic;
@@ -13,13 +12,13 @@ namespace MilitaryShooter
         private const int MinDelay = 16;
 
         private readonly ModelFactory _modelFactory;
-        private readonly ObjectFactory _objectFactory;
+        private readonly GameObjectCreator _objectCreator;
 
         public GameEngine()
         {
             IsGameStarted = false;
             _modelFactory = new();
-            _objectFactory = new();
+            _objectCreator = new();
         }
 
         public GameEngine(double resX, double resY)
@@ -28,9 +27,9 @@ namespace MilitaryShooter
             ResY = resY;
 
             _modelFactory = new();
-            _objectFactory = new();
+            _objectCreator = new();
 
-            Player = _objectFactory.Make(new Player());
+            Player = _objectCreator.Make(new Player());
             Player.Death += OnPlayerDeath;
             Player.SwitchedGamePause += OnGamePauseSwitchedByPlayer;
             Player.SwitchedGameMenu += OnGameMenuSwitchByPlayer;
@@ -38,7 +37,7 @@ namespace MilitaryShooter
 
             Controls = new GameControl(Player);
 
-            EnemyQueue = new EnemyQueue(_objectFactory);
+            EnemyQueue = new EnemyQueue(_objectCreator);
             CurrentEnemy = EnemyQueue.Clones(0);
             IsGameStarted = true;
             Paused = false;
@@ -77,6 +76,7 @@ namespace MilitaryShooter
         public bool IsGameStarted { get; private set; }
         public bool Paused { get; private set; }
         public Player? Player { get; set; }
+
         public async Task GameLoop()
         {
             while (!Paused && IsGameStarted)
@@ -95,12 +95,12 @@ namespace MilitaryShooter
 
         public List<GameObject> GetGameObjects()
         {
-            return _objectFactory.GetGameObjects();
+            return _objectCreator.GetGameObjects();
         }
 
         public void OnGameRestartedByPlayer()
         {
-            _objectFactory.DecommissionAll();
+            _objectCreator.DecommissionAll();
             _modelFactory.DecommissionAll();
         }
 
@@ -114,13 +114,13 @@ namespace MilitaryShooter
 
         private void CleanGameObjects()
         {
-            _objectFactory.DecommissionExpired();
+            _objectCreator.DecommissionExpired();
             _modelFactory.DecommissionExpired();
         }
 
         private List<Character> GetCharacters()
         {
-            return _objectFactory.GetCharacters();
+            return _objectCreator.GetCharacters();
         }
 
         private async void OnGameMenuSwitchByPlayer()
@@ -174,7 +174,7 @@ namespace MilitaryShooter
 
         private void RemoveGameObject(GameObject gameObject)
         {
-            _objectFactory.Decommission(gameObject);
+            _objectCreator.Decommission(gameObject);
             GameModel? modelToRemove = _modelFactory.FindGameModelBy(gameObject);
             if (modelToRemove != null)
             {
@@ -214,9 +214,9 @@ namespace MilitaryShooter
 
         private void UpdateGameObjects()
         {
-            for (int i = 0; i < _objectFactory.GetGameObjects().Count; i++)
+            for (int i = 0; i < _objectCreator.GetGameObjects().Count; i++)
             {
-                GameObject obj = _objectFactory.GetGameObjects()[i];
+                GameObject obj = _objectCreator.GetGameObjects()[i];
                 obj.Update();
             }
         }

@@ -3,13 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MilitaryShooter.Factories
+namespace MilitaryShooter
 {
-    internal class ObjectFactory
+    internal class GameObjectCreator
     {
         private readonly List<GameObject> _gameObjects;
 
-        public ObjectFactory()
+        public GameObjectCreator()
         {
             _gameObjects = new();
         }
@@ -44,7 +44,7 @@ namespace MilitaryShooter.Factories
             if (obj is GameObject gameObject)
             {
                 _gameObjects.Add(gameObject);
-                gameObject.Factory = this;
+                gameObject.Creator = this;
             }
             return (T)Convert.ChangeType(obj, obj!.GetType())!;
         }
