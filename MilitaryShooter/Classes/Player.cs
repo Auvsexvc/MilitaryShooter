@@ -5,6 +5,22 @@ namespace MilitaryShooter.Classes
 {
     internal class Player : Character, IPlayer
     {
+        public bool AlternativeControls { get; set; }
+
+        public bool MoveDown { get; set; }
+
+        public bool MoveLeft { get; set; }
+
+        public bool MoveRight { get; set; }
+
+        public bool MoveUp { get; set; }
+
+        public event Action? RestartedGame;
+
+        public event Action? SwitchedGameMenu;
+
+        public event Action? SwitchedGamePause;
+
         public Player()
         {
             Name = "PlayerOne";
@@ -15,17 +31,6 @@ namespace MilitaryShooter.Classes
             AlternativeControls = false;
         }
 
-        public event Action? RestartedGame;
-
-        public event Action? SwitchedGameMenu;
-
-        public event Action? SwitchedGamePause;
-
-        public bool AlternativeControls { get; set; }
-        public bool MoveDown { get; set; }
-        public bool MoveLeft { get; set; }
-        public bool MoveRight { get; set; }
-        public bool MoveUp { get; set; }
         public void ContinueGame()
         {
             SwitchedGameMenu?.Invoke();

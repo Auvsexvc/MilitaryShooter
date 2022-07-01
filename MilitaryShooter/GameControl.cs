@@ -116,6 +116,7 @@ namespace MilitaryShooter
             Point position = e.GetPosition((IInputElement)sender);
             _player.AimAt((position.X, position.Y));
         }
+
         public void RestartGame()
         {
             _player.RestartGame();

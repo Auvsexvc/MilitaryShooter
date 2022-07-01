@@ -5,13 +5,14 @@ namespace MilitaryShooter
     internal class EnemyQueue
     {
         private readonly GameObjectCreator _objectCreator;
+        public Enemy NextEnemy { get; private set; }
+
         public EnemyQueue(GameObjectCreator factory)
         {
             _objectCreator = factory;
             NextEnemy = _objectCreator.Make(new Enemy());
         }
 
-        public Enemy NextEnemy { get; private set; }
         public Enemy Clones(int clones)
         {
             while (clones > 0)

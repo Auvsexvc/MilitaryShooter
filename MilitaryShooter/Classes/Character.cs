@@ -12,6 +12,34 @@ namespace MilitaryShooter.Classes
         protected const double DefaultRotationMultiplier = 1.5;
         private const double DefaultCharacterSide = 32;
         private const double DefaultSpeed = 2.0;
+        public (double X, double Y) Aim { get; set; }
+
+        public double AimDistance => DistanceMeter(CenterPosition, Aim);
+
+        public double Angle => GetAngle();
+
+        public int BulletsFired { get; protected set; }
+
+        public double CurrentAngle { get; set; }
+
+        public bool LaserAssistance { get; protected set; }
+
+        public List<(double X, double Y)> PointsToMoveTo { get; set; }
+
+        public double RangeOfFire { get; protected set; }
+
+        public double RangeOfView { get; protected set; }
+
+        public int RateOfFire { get; protected set; }
+
+        public double RotationSpeed => Speed * DefaultRotationMultiplier;
+
+        public Stopwatch Stopwatch { get; }
+
+        public event Action? Death;
+
+        public event Action<Character, Projectile>? Fire;
+
         protected Character()
         {
             Speed = DefaultSpeed;
@@ -25,24 +53,6 @@ namespace MilitaryShooter.Classes
             LaserAssistance = false;
         }
 
-        public event Action? Death;
-
-        public event Action<Character, Projectile>? FireBullet;
-
-        public event Action<Character, Projectile>? UseGrenade;
-
-        public (double X, double Y) Aim { get; set; }
-        public double AimDistance => DistanceMeter(CenterPosition, Aim);
-        public double Angle => GetAngle();
-        public int BulletsFired { get; protected set; }
-        public double CurrentAngle { get; set; }
-        public bool LaserAssistance { get; protected set; }
-        public List<(double X, double Y)> PointsToMoveTo { get; set; }
-        public double RangeOfFire { get; protected set; }
-        public double RangeOfView { get; protected set; }
-        public int RateOfFire { get; protected set; }
-        public double RotationSpeed => Speed * DefaultRotationMultiplier;
-        public Stopwatch Stopwatch { get; }
         public void AimAt((double, double) target)
         {
             SetAim(target);
@@ -129,7 +139,7 @@ namespace MilitaryShooter.Classes
         {
             if (Rotate())
             {
-                UseGrenade?.Invoke(this, Creator.Make(new Grenade
+                Fire?.Invoke(this, Creator.Make(new Grenade
                 {
                     Target = Aim,
                     Source = CenterPosition,
@@ -229,6 +239,7 @@ namespace MilitaryShooter.Classes
 
             return angle;
         }
+
         private bool IsKilled() =>
             Health <= 0;
 
@@ -236,7 +247,7 @@ namespace MilitaryShooter.Classes
         {
             if (Rotate())
             {
-                FireBullet?.Invoke(this, Creator.Make(new Bullet
+                Fire?.Invoke(this, Creator.Make(new Bullet
                 {
                     Target = Aim,
                     Source = CenterPosition,

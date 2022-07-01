@@ -11,6 +11,10 @@
         private const double DefaultWidth = 10;
         private (int x, int y) _spray;
 
+        public bool IsTracer { get; private set; }
+
+        public (double W, double H) Trail { get; private set; }
+
         public Bullet()
         {
             Speed = DefaultSpeed + (GameStatic.rand.NextDouble() * 10);
@@ -21,9 +25,6 @@
             _spray = (GameStatic.rand.Next(-DefaultSpray, DefaultSpray + 1), GameStatic.rand.Next(-DefaultSpray, DefaultSpray + 1));
             SetToTracerRound();
         }
-
-        public bool IsTracer { get; private set; }
-        public (double W, double H) Trail { get; private set; }
 
         public void SetToTracerRound()
         {

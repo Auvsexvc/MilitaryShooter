@@ -6,29 +6,34 @@ namespace MilitaryShooter.Classes
 {
     internal abstract class GameObject
     {
+        public (double X, double Y) CenterPosition => GetCenter();
+
+        public GameObjectCreator Creator { get; set; }
+
+        public Guid Guid { get; protected set; }
+
+        public int Health { get; protected set; }
+
+        public double Height { get; set; }
+
+        public bool IsExpired { get; set; }
+
+        public string? Name { get; protected set; }
+
+        public (double X, double Y) PositionLT { get; set; }
+
+        public double Speed { get; protected set; }
+
+        public double Width { get; set; }
+
+        public event Action<GameObject>? TriggerRemoveObject;
+
         protected GameObject()
         {
             Guid = Guid.NewGuid();
             IsExpired = false;
             Creator = new GameObjectCreator();
         }
-
-        public event Action<GameObject>? TriggerRemoveObject;
-
-        public (double X, double Y) CenterPosition => GetCenter();
-
-        public GameObjectCreator Creator { get; set; }
-        public Guid Guid { get; protected set; }
-
-        public int Health { get; protected set; }
-        public double Height { get; set; }
-        public bool IsExpired { get; set; }
-
-        public string? Name { get; protected set; }
-        public (double X, double Y) PositionLT { get; set; }
-
-        public double Speed { get; protected set; }
-        public double Width { get; set; }
 
         public virtual void TakeDamage(double damage)
         {

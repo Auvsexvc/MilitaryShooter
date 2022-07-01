@@ -15,6 +15,18 @@ namespace MilitaryShooter.Classes
         private const double DefaultRange = 300;
         private const double DefaultSpeed = 8;
         private const double DefaultWidth = 16;
+        public double BlastRadius { get; set; }
+
+        public double BlastSpeed { get; set; }
+
+        public double CurrentBlastRadius { get; set; }
+
+        public bool Exploded { get; set; }
+
+        public Stopwatch Stopwatch { get; }
+
+        public event Action<Grenade>? TriggerModelResize;
+
         public Grenade()
         {
             Width = DefaultWidth;
@@ -29,13 +41,6 @@ namespace MilitaryShooter.Classes
             Stopwatch.Start();
         }
 
-        public event Action<Grenade>? TriggerModelResize;
-
-        public double BlastRadius { get; set; }
-        public double BlastSpeed { get; set; }
-        public double CurrentBlastRadius { get; set; }
-        public bool Exploded { get; set; }
-        public Stopwatch Stopwatch { get; }
         public override void Update()
         {
             MoveToPoint();
@@ -91,11 +96,11 @@ namespace MilitaryShooter.Classes
             }
             else
             {
-                FallDown();
+                Implode();
             }
         }
 
-        private void FallDown()
+        private void Implode()
         {
             if (CurrentBlastRadius >= 0)
             {

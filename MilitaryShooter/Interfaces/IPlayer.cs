@@ -4,14 +4,18 @@ namespace MilitaryShooter.Interfaces
 {
     internal interface IPlayer
     {
+        bool MoveDown { get; set; }
+
+        bool MoveLeft { get; set; }
+
+        bool MoveRight { get; set; }
+
+        bool MoveUp { get; set; }
+
         event Action? SwitchedGameMenu;
 
         event Action? SwitchedGamePause;
 
-        bool MoveDown { get; set; }
-        bool MoveLeft { get; set; }
-        bool MoveRight { get; set; }
-        bool MoveUp { get; set; }
         void AimAt((double, double) p);
 
         void ClearWaypoints();

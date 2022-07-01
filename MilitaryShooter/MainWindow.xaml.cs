@@ -290,6 +290,7 @@ namespace MilitaryShooter
             SpawnLabels();
             await _gameEngine.GameLoop();
         }
+
         private void SpawnLabels()
         {
             Label healthLabel = new()

@@ -8,11 +8,48 @@ namespace MilitaryShooter
 {
     internal class GameEngine
     {
-        private const int MaxDelay = 16;
-        private const int MinDelay = 16;
-
         private readonly ModelFactory _modelFactory;
         private readonly GameObjectCreator _objectCreator;
+
+        public static double ResX { get; private set; }
+
+        public static double ResY { get; private set; }
+
+        public GameControl? Controls { get; }
+
+        public Enemy? CurrentEnemy { get; }
+
+        public EnemyQueue? EnemyQueue { get; }
+
+        public bool GameOver { get; private set; }
+
+        public bool IsGameStarted { get; private set; }
+
+        public bool Paused { get; private set; }
+
+        public Player? Player { get; set; }
+
+        public event Action? CloseGameMenu;
+
+        public event Action<GameModel>? MakeCharacterModel;
+
+        public event Action<GameModel>? MakeProjectileModel;
+
+        public event Action? OpenGameMenu;
+
+        public event Action? PauseGame;
+
+        public event Action? PlayerDeath;
+
+        public event Action<GameModel>? RemoveModel;
+
+        public event Action? UnpauseGame;
+
+        public event Action? UpdateLabels;
+
+        public event Action? UpdateLinesOfFire;
+
+        public event Action? UpdateModels;
 
         public GameEngine()
         {
@@ -43,44 +80,12 @@ namespace MilitaryShooter
             Paused = false;
         }
 
-        public event Action? CloseGameMenu;
-
-        public event Action<GameModel>? MakeCharacterModel;
-
-        public event Action<GameModel>? MakeProjectileModel;
-
-        public event Action? OpenGameMenu;
-
-        public event Action? PauseGame;
-
-        public event Action? PlayerDeath;
-
-        public event Action<GameModel>? RemoveModel;
-
-        public event Action? UnpauseGame;
-
-        public event Action? UpdateLabels;
-
-        public event Action? UpdateLinesOfFire;
-
-        public event Action? UpdateModels;
-
-        public static double ResX { get; private set; }
-        public static double ResY { get; private set; }
-        public GameControl? Controls { get; }
-        public Enemy? CurrentEnemy { get; }
-        public EnemyQueue? EnemyQueue { get; }
-
-        public bool GameOver { get; private set; }
-
-        public bool IsGameStarted { get; private set; }
-        public bool Paused { get; private set; }
-        public Player? Player { get; set; }
-
         public async Task GameLoop()
         {
             while (!Paused && IsGameStarted)
             {
+                const int MaxDelay = 16;
+                const int MinDelay = 16;
                 int delay = Math.Max(MinDelay, MaxDelay);
                 await Task.Delay(delay);
 
@@ -187,8 +192,7 @@ namespace MilitaryShooter
         {
             MakeCharacterModel?.Invoke(_modelFactory.MakeModel(character));
             character.TriggerRemoveObject += RemoveGameObject;
-            character.FireBullet += SpawnProjectileFiredBy;
-            character.UseGrenade += SpawnProjectileFiredBy;
+            character.Fire += SpawnProjectileFiredBy;
         }
 
         private void SpawnProjectileFiredBy(Character character, Projectile projectile)
